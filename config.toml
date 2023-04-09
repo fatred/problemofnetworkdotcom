@@ -1,1 +1,4 @@
+# set theme
 theme = 'terminal'
+# Set content editor
+newContentEditor = "code"
