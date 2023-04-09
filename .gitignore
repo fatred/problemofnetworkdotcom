@@ -1,0 +1,4 @@
+.hugo_build.lock
+*.test
+/resources
+/node_modules
