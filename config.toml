@@ -1,3 +1,7 @@
+baseURL = 'https://problemofnetwork.pages.dev/'
+languageCode = 'en-gb'
+title = 'Problem of Network'
+
 # set theme
 theme = 'terminal'
 # Set content editor
