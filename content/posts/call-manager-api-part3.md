@@ -40,7 +40,6 @@ Update the userid in the search criteria to match the userid we will add in a mo
 
 Update your authentication and make sure your endpoint uri is properly defined at the top.
 
-
 ![SoapUI: Update the fields to limit the scope of the return](/img/call-manager-api-part3/soapuiAddRequestProveUserNotPresent-XMLFields.PNG)
 
 Now, run the request.  You should get an error back saying the end user does not exist.
