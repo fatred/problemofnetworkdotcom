@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/05/automating-for-fun-and-profit.html']
 +++
 This is one of those posts that I will constantly refer back to... ;)
 

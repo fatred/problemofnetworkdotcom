@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2016/01/aci-setup.html']
 +++
 On Friday last week we rolled out our ACI solution into one of our DCs. The setup is simple, comprising of;
 

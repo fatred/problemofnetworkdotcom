@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2016/01/aci-rack-with-falling-at-first-hurdle.html']
 +++
 Plumbing ACI is something that YouTube has you covered on.  I wont reinvent that wheel.  For the initial standup, I am doing the bare minimum connectivity; each leaf has one 40G uplink to each spine, meaning, 80G of North/South Bandwidth.  This will double up when we are preparing for Production service, matching my UCS/FI Bandwidth between each Chassis (4x10G links to each side of my 2208XPs).  My 3 APICs are configured as follows:
 

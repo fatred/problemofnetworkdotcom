@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2016/01/aci-mini-rant-at-insbu.html']
 +++
 Before I get too wound up I should probably say that all of this was directed to my friends there first, and whilst I won't say much about their thoughts, I don't think this is particularly new to them, or out of place.
 

@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2016/01/aci-initial-design-considerations.html']
 +++
 ACI brings with it many different constructs for operating networks, some of which have analogous equivalence with classical networking, some of which are literally bat-poop crazy.
 

@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2016/01/the-aci-adventure-begins.html']
 +++
 Starting yesterday I began to deploy our Nexus 9000 ACI solution into our Datacentre. Scary yet fun times are ahead.
 

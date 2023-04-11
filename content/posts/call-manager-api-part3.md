@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/06/cucm-intro-to-apis-pt3.html']
 +++
 In this the third part of my mini series on using the CUCM API, we start to get further into the Ju-Ju, and check web app changes via the API, before then going on to make a change via the API itself.
 

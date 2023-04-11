@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/06/callmanager-apis-pt4.html']
 +++
 So by now you can use SoapUI and Python to read info out, and can utilise SoapUI Test Cases to validate, and deliver changes to the CallManager system.  Again, please do ensure you have reviewed parts 1-3 before entering into this post.  Its entirely contextualised within the series.
 

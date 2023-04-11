@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/12/ciscoconfparse-and-paramiko.html']
 +++
 Ick,  I know.
 

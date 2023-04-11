@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/05/the-sdn-conundrum.html']
 +++
 Oh how the world has changed since I started out in the wonderful trade.
 
