@@ -1,0 +1,50 @@
++++
+title = "End of an Era: The Solera Years"
+date = "2020-10-19T17:31:00+02:00"
+author = "John Howard"
+authorTwitter = "fatred" #do not include @
+cover = ""
+tags = []
+keywords = ["", ""]
+description = ""
+showFullContent = false
+readingTime = false
+hideComments = false
+color = "" #color from the theme settings
+aliases = ['/2020/10/end-of-era-solera-years.html']
++++
+Two weeks ago I was made redundant. COVID and "shifting business priorities" meant a re-org of my department and for whatever reason, that is that. Over the last year or so I had assumed this day might come and the question I had internally was if I would jump or if I would be pushed. Since I was slap bang in the middle of a key project, I had assumed I might still have 9-12 months or so left to close that out. Turns out I was wrong. Thankfully my documentation is average enough for them to cope without me.
+
+Given I was somewhat mentally cognisant of the risk I wasn't overly upset when I got the news, and the Company have treated me very well in the exit negotiations etc. I hold no ill will for them, and nor they me. It's as good of a break-up as you can expect I suppose.
+
+As part of looking for a new job I had to dig out and dust off my CV, which was about 10 years old. I had sort of kept it up to date, but not really, so I found myself savaging old and crusty "skills" and "achievements" and trying to boil down the last 10 years into a few paragraphs. It's a lot harder than it seems.
+
+What's worse is there are two or three directions in which I could head from here, and each would probably require different versions of my CV, that focus on areas that would be of keen interest to certain employers. It is only really now that I can appreciate just how lucky I was for the last few years to be able to spread my wings in so many different directions.
+
+I've done Network Architecture work as we designed, then brownfield built out new ACI fabrics in eight of our major DCs in the world. I led that team in the design phase and then led the rollout team as well to ensure we got it done right. During that rollout phase we made sure that all of our 11 Engineers were fully gitops trained as well. All our changes are now done in the gitlab repos, approved by other team members and then merged to be run by a gitlab pipeline or Ansible Tower. This was then updated in the last year or so with a highly distributed, Infoblox backed BIND DNS infrastructure, saving us a ton of money on licencing overpriced hardware, but still allowed us to utilise the high quality DDI front end of Infoblox, and its very decent RPZ based DNS Firewall. Finally, we migrated our legacy BGP confederation on Cisco hardware, to a completely software based BGP routing tier for our internet border, which I designed and then shepherded into operation with support from two outstanding engineers.  This allowed us to come away from vendor blended internet services, which are a complete nightmare to live with, and replaced them with our own homebrew blended service.  Here we used commodity Transit full tables and added additional prefixes from direct links into IXP peering LANs at a front end level, aggregating all these paths in a route reflector tier, where we used BGP Traffic Engineering principles to then assemble locally significant full tables which we present to Debian VMs with FRR to operate as backend gateways to our border firewalls. Our ability to do traffic engineering on the fly was a significant improvement to our customer experience, and access the IXPs meant we could drop latency to some key locations in Europe without having to play the blended internet ticket dance with whichever DC it may be.
+
+This highly optimised DC infrastructure is probably my proudest achievement of the last 4 years.
+
+More recently i've done Cloud Engineering in AWS and Azure, from the basics of On-Prem network integration, all the way through to personally designing and implementing a Terraform & Ansible driven, Gitlab CI controlled application stack on Windows IIS/ASP.NET/SQL Server. That customer facing deployment replaced a legacy DC setup in a rather remote location and saved the company 6 figure sums in just 5 weeks.
+
+I've also done RedHat Openstack and Openshift with Ceph on our own bare metal. I've then trashed that all and replaced it with my own homegrown gitlab pipeline; terraforming VMware VMs, then handing them to Ansible to install Opensource Kubernetes, with integrated vsphere storage-classes, and then using helm to deploy a ton of things for a minimum viable product. I've then had to adapt all of that to use VMware PKS instead of open source. That was a fun 6 months...
+
+Lastly I have then had a chance to really shake things up and build out a complete opensource DC design. This included Cumulus Linux on Mellanox Spectrum, Penguin Computing Servers for compute running Kubernetes directly, Ceph storage again, and an enhanced version of that software based internet BGP routing stack. The half rack pod costs $400,000 to buy, can operate environments that deliver 10x that in revenue, and sits under 10kW in peak consumption.
+
+Throughout the last 5 years I have been able to push the limits of what I know, and what the business was comfortable with. I have made a ton of mistakes, most of which thankfully didn't affect our customer experience, and learned an absolute ton about not just the technology here, but myself as well.
+
+Much of that is thanks to the support I had from my CIO at the time who was quite the disruptive influence. He knew that the right thing wasn't always the easy thing, and he always pushed us to be the best we could be.
+
+That in and of itself wasn't always the best thing, and I have to acknowledge that at times I was difficult to live with and I didn't always give my family the best of me.  Perhaps the hardest lesson to learn was how to draw the line between what I need to do and when I need to get it done. We always need "another 5 minutes" to finish, but we also know we never really finish either. I also think in retrospect that my desire to push the envelope has placed me in uncomfortable positions on the Dunning-Kruger curve at times as well. Having the support of people can inflate the ego, and sometimes that ego can drive you to arrogant cul-de-sacs of isolation. One hopes I am a little more humble now than I was just a few years ago.
+
+As I look now to the future, I have to choose whether I want to remain in a hands on role, or move upwards to the executive suites. Up there in the ivory towers, the money and risk is higher, and the skills are used less often, more as a balance to BS than anything operational. That's OK, but i'm not 100% sure i'm ready for that yet. My people skills have improved immeasurably since I started running engineers all those years ago, but I don't get the same buzz from fixing the budget as I do from fixing a problem. I love training and inspiring the next iteration of engineers, but I tend to do that mostly by showing them how to do something, not by fighting the business to get them training time with someone else. End result, I think I need to be near the action still.
+
+So then, given my exposure, and moderate successes within the cloud and devops world, I have the option to go full time in that direction. I seem to know more about kubernetes than a bunch of people who claim to be experts in it, although real experts like those at Heptio tell me that is very, very common... I think that would be a lot of fun for me, and as technology has already changed so much in that direction, it's a great option for career growth. The thing that puts me off that slightly though, is the fact that every man, woman and their dog is off in that same direction, and standing out in a sea of 10,000 CVs is always a challenge. Never one to shy a challenge, I think I will still try, but the pessimist in me things that the competition is high there.
+
+I also have remained very close to the security space for the last 10 years, and whilst I am no Pentester, and I am not likely to enjoy a job in GRC any time soon, I think I have a lot to offer the Secops realm. I have worked as a sysadmin for many a year, and in network infra and design. If you speak to any Security "rockstar", this is the exact heritage that they want people to enter the space with.  My greatest concern is that since moving to Switzerland in 2017, I have been the main breadwinner in the family. and for me to enter that security space, I will probably have to start in a more junior role, and then qualify back up to the salary I hold today. This is probably a bit of a strain for everyone, and so absent of extra income, it possibly a bit folly to expect that right now.
+
+So realistically, my best bet is to play to my strengths and focus on my key competencies of Networking and Modernisation. There are many businesses out there that are keen to move beyond the "hello world" and into proper CI/CD style operations on their networks. I have lost track of how many people I have spoken to and observed in the community who are happy to write an Ansible play to update the NTP servers on their fleet of Cisco Switches and Routers, but wouldn't dare use it to add or remove a local user after someone leaves the business. They're lacking confidence and they're worried it will break things. This whole topic also hastily avoids the conversation that they haven't deployed tacplus or freeradius for the same reasons.
+
+Sometimes doing the basics are sort of boring, but by the same token, getting the boring stuff out of the way opens the door to doing something interesting, well. Before, I used to save the interesting stuff for my free time, and as already noted, this took time away from my family too. What I look to do next is to help my next business do the basics very well with automation and then use that new found freedom, to look to see what we need to do better.
+
+If you know some place that needs someone like me, let me know using the contact details at the side.

@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/06/live-from-cisco-live-us-2015.html']
 +++
 This week is a first for me.  I'm at Cisco Live in San Diego.  It's been pretty awesome so far I have to say!
 

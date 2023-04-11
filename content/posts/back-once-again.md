@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2013/10/back-once-again-for-renegade-master.html']
 +++
 ...for the renegade master!
 

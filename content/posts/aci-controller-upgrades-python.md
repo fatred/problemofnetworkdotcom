@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2016/01/aci-controller-upgrades-from-python.html']
 +++
 So I bought my ACI bundles so long ago that they're still running 1.0(3f). Right now mainline is 1.2(1k), so i'm a bit behind.
 

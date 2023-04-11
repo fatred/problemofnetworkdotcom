@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/05/using-callmanager-apis-for-fun-and.html']
 +++
 In this part 2 of my API adventure, I will be looking at repeating what we did Part 1 via SoapUI, but this time in python using the suds library.  If you haven't read that yet, then really, please go back and do that. This will not be wildly useful otherwise.
 

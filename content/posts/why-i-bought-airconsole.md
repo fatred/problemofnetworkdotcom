@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/06/why-i-bought-airconsole.html']
 +++
 
 Today I was reminded what a great git of Kit the ![AirConsole](https://youtu.be/1hmi03APwnc) really is.  Its essentially a box that gives you Serial Access to a device via an RJ45 (Cisco pin-out) using WiFi, Bluetooth or wired, using a web GUI, or a bonkers driver setup on your machine.
