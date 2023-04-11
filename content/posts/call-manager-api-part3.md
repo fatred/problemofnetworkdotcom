@@ -1,8 +1,8 @@
 +++
 title = "Using CallManager APIs for fun and profit: Part 3 - Changes"
 date = "2015-06-01T10:41:00+00:00"
-author = ""
-authorTwitter = "" #do not include @
+author = "John Howard"
+authorTwitter = "fatred" #do not include @
 cover = ""
 tags = ["CallManager","Automation","API","Devops","Python"]
 keywords = ["", ""]
