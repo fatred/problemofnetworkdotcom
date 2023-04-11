@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2020/06/software-defined-waffle-with-gitops.html']
 +++
 Over the last two years or so, I have been on adventure with Data Centre Infrastructure renewal. As past posts may allude to, ACI was a big part of what we did, but before anyone gets all dogmatic about it, know that we didn't go "All in" with that one product, since I personally don't subscribe to the "DC Fabrics cure all ills" mantra.
 
