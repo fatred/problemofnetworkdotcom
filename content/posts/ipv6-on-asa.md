@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2015/05/ipv6-in-asa-basics.html']
 +++
 This is the first in what will no doubt be a many part series on deploying IPv6.  This is a problem I have had to overcome recently, and still to this day I battle with the implementation subtleties.  If you find yourself in my shoes, I hope you find this helpful.
 
