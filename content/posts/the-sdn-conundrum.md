@@ -60,7 +60,7 @@ Various vendors have then taken the open-source tools and applied their own spit
 VMware have had the jump on most with NSX being around in the marketing landscape the longest, but its use case remains quite niche and takeup still doesnt sound that great.  
 Cisco have then looked to corner the enterprise space with ACI, which is still very new, but at least in my use present use case, the one that covers all my required bases.
 
-I will take separate posts to discuss the various solutions as I see them, but allow me to summarise my position as follows: 
+I will take separate posts to discuss the various solutions as I see them, but allow me to summarise my position as follows:
 
 Openstack/OpenDaylight: Webscale/Cloud hosting centric. Mature in the context of present SDN, but still short of something you would bet your career on.  Seemingly the de-facto starting point for third party integrations.
 VMware NSX: Designed for VMware IaaS shops i.e. Service Delivery teams in a larger business delivering Private Cloud services to internal customers. Not a lot of third party work going on here.
@@ -82,6 +82,6 @@ It is my belief that any business not considering and reviewing an SDN strategy 
 
 That could be as simple as migrating to Cloud since they handle the SDN component for you.  it is still an SDN strategy.  To those who remain on prem and don't have true, application level orchestration within the next 3 years, you will be left behind by your peers, who will innovate and deliver new product at an exponential rate.  You have been warned!*  
 
-_* by a complete nobody who has no idea what he is talking about_
+_* by a complete nobody who has no idea what he is talking about._
 
 Before too many people get up in my chops as well, my point with this post was to challenge the default NIMBY response of most engineers, and to spark internal debate within those same engineering minds.  SDN is not a fad, nor is it a panacea. It is a genuine swiss army knife that when used appropriately can allow you, the beardy engineer, more time to innovate, rather than just administer. Never say never...

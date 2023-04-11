@@ -69,7 +69,7 @@ To do the following, you will require a few Pre-Reqs;
 3. Python 2.7 + the suds libraries
 4. A CallManager that you can play with - I will not be held responsible for you breaking a production system!!! Play safe!!!
 
-_Now a word of warning here.  If you cannot look at the pre-reqs and sort that out without further instructions, then the rest of this series probably isn't for you.  I would recommend that you park this, and go away to brush up your simple API skills.  I would look at getting a RaspberryPi and having a go with Python via here. I would then move on to understand the framework using DevNet training and the AXL Cookbook_
+_Now a word of warning here.  If you cannot look at the pre-reqs and sort that out without further instructions, then the rest of this series probably isn't for you.  I would recommend that you park this, and go away to brush up your simple API skills.  I would look at getting a RaspberryPi and having a go with Python via here. I would then move on to understand the framework using DevNet training and the AXL Cookbook._
 
 Once you have the API, you need to extract the ZIP and get the schema folder hosted on a web server somewhere so that you can use it.  I cheat.  I browse to the folder I extracted the ZIP to, and then fire up a Python web server with a one liner.  If you have access to a private web server that's nailed up, this might be a better option. Just make sure that it doesn't require auth to see it, and for your own bandwidth, I would avoid making it public...
 
@@ -96,6 +96,7 @@ Take a look around, and then get a coffee.  Things are about to get nerdy - we w
 To do that, we are going to perform some tasks on a CUCM web GUI, then repeat that in the API.  We will then change something on the WebGUI and validate that changed on the API, and then do the same vice-versa.  Finally, we will add something new via the API and check it on the web...
 
 ## Searching
+
 Lets go find an end user with "user" in their username... I wont insult anyone intelligence with a review of how to drive the GUI ;o)
 
 ![CUCM GUI: Find Users](/img/call-manager-api-part1/FindUser.PNG)
@@ -106,14 +107,13 @@ In the API, searching is referred to as "list". So we need to find something to 
 
 ![SoapUI: Methods Tree Listing](/img/call-manager-api-part1/SoapUIMethodList1.PNG)
 
-
 Then have a scroll down until you reach the ones starting with "list".  You want something referring to Users.
 
 ![SoapUI: listUser Method](/img/call-manager-api-part1/SoapUIMethodList.PNG)
 
-_Note: Don't confuse the user types.  We searched for a normal end user.  There is a whole separate section in the GUI for application users, and unsurprisingly the same is true in the API; listAppUser_
+_Note: Don't confuse the user types.  We searched for a normal end user.  There is a whole separate section in the GUI for application users, and unsurprisingly the same is true in the API; listAppUser._
 
-So we have something that looks like it might work in SoapUI.  Expand the tree alongside the method, to open up a pre-defined request.  Select that and magic appears in the foreground pane. 
+So we have something that looks like it might work in SoapUI.  Expand the tree alongside the method, to open up a pre-defined request.  Select that and magic appears in the foreground pane.
 
 ![SoapUI: listUser Request Pane](/img/call-manager-api-part1/SoapUIListEndUser.PNG)
 
@@ -154,12 +154,14 @@ First basically says, starting from the record number indicated above, return th
 So, assume you have 2000 users, you dont really want to yank them all in one go.  You could write a process that pulls users 50 at a time.  
 
 Request 1 would say:
+
 ```xml
  <skip>0</skip>
  <first>50</first>
 ```
 
-Request 2 would say  
+Request 2 would say:
+
 ```xml
  <skip>49</skip>
  <first>50</first>
