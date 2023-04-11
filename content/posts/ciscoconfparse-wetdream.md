@@ -49,13 +49,13 @@ The basic flow of the script is as follows:
 3. When connected, disable output paging for the session, and do a sh run to gather all data into a buffer.
 4. parse buffer using the CiscoConfParse module.  This uses various forms of intelligence to group like minded config sections together for searching/manipulation and the creation of rollout/rollback scripts
 5. report some summary data to the end user to prove the script is talking to the switch properly
-6. create a new workbook object and label up its first worksheet 
+6. create a new workbook object and label up its first worksheet
 7. install the row headers
 8. extract all the gigabit ethernet ports and store them in a list of config objects.
 9. iterate through each port in turn
-   1.  extract all the dot1x ports from the list, and update the spreadsheet adding some pertinent data to appropriate columns in a specific row for that port
-   2.  extract all the static ports from the list, and update the spreadsheet adding some pertinent data to appropriate columns in the specific row for that port
-   3.  extract all the trunk ports from the list, and update the spreadsheet adding some pertinent data to appropriate columns in a specific row for that port
+   1. extract all the dot1x ports from the list, and update the spreadsheet adding some pertinent data to appropriate columns in a specific row for that port
+   2. extract all the static ports from the list, and update the spreadsheet adding some pertinent data to appropriate columns in the specific row for that port
+   3. extract all the trunk ports from the list, and update the spreadsheet adding some pertinent data to appropriate columns in a specific row for that port
 10. report some interface data back to the end user, then save the worksheet to disk
 
 I will start with the get_switch_conf function, since this is the most reusable section of code I have. Most if not all of that is generic enough to lift and shift to any other script that uses SSH to gather base configs.

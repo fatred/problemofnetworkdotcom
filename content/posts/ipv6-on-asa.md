@@ -20,7 +20,6 @@ I use ASAs as routers in the campus.  Why? Cos shut up - that's why!  I like to 
 
 To those of you who do it in transparent mode, and/or use Layer 3 Switching with ACLs, I salute you.  This works for me tho ;)
 
-
 The quickest way to get you from nothing to something in IPv6 world is to take on board the following:
 
 * You should totally forget subnet sizing for any campus deployment. Your networks will get a /64 allocated from a site specific /48.
@@ -36,7 +35,7 @@ _Note that unless otherwise instructed, most application stacks will attempt IPv
 
 Assigning IPv6 to an interface is dead easy.  Assume we have 2aaa:2bbb:2ccc::/48 as our site prefix.
 
-```
+```cisco
 interface Port-channel2.100
   vlan 100
   nameif MGMT
@@ -47,6 +46,7 @@ interface Port-channel2.100
   ipv6 enable
   ipv6 nd prefix 2aaa:2bbb:2ccc:100::/64 86400 86400
 ```
+
 Lets look at that for a moment.  I will ignore the standard interface stuff - port channels are optional as is the failover config
 
 * First we assign our Global IPv6 address to the interface.  This is the publicly routable address.
@@ -55,5 +55,3 @@ Lets look at that for a moment.  I will ignore the standard interface stuff - po
 * Finally, we set up SLAAC neighbour discovery on this L2 VLAN, letting other endpoints know that we are a router for this prefix.  Think of it as a one liner for essential DHCP style network address distribution.
 
 Next, we need a route.
-
-
