@@ -1,8 +1,6 @@
-baseURL = 'https://problemofnetworkdotcom.pages.dev/'
+baseURL = 'https://www.problemofnetwork.com/'
 languageCode = 'en-gb'
 title = 'Problem of Network'
 
 # set theme
 theme = 'terminal'
-# Set content editor
-newContentEditor = "code"
