@@ -13,9 +13,17 @@ hideComments = false
 color = "" #color from the theme settings
 aliases = ['/2021/11/my-fiber7-x-vyos-config.html']
 +++
+_Updated Aug 2022: After moving house I have been able to split my install between the basement and the house, so I bought myself an Dell Optiplex 7050 to be the VyOS router (the OTO is in the house), and then run a 10G fibre to the basement for the rest of the stuff. I think I will leave the post as is because the VM method is more interesting, but I will add a block on that below._
+
 _Updated Jul 2022: Following an exchange ![on Twatter](https://twitter.com/AnomalRoil/status/1545017882534244353) it was clear to me that my explaination around the IPv6-PD usage was not very good, so I updated this section to clarify the prefix usage. I also feel that there is a gap here where the VyOS config should be able to pool the PD assignment, instead of me assigning it somewhere stupid like I did here._
 
 As I discussed in my 10/25Gbit internet at home ![post](https://www.problemofnetwork.com/2021/11/1025-gbit-internet-at-home-very-21st.html), I recently moved away from an appliance based router at home, to instead use a fancy(ish) NIC passed through directly to a VM. The point of this was to try and increase the throughput, whilst maintaining a low footprint in terms of power, complexity and cost. I guess we can argue about the complexity bit, but it wasn't complex for me I guess. In this post I will break down the various sections of config to explain how they work and what they do.
+
+### To VM or not to VM
+
+In the homelab setting, its quite common to have hypervisors running for efficiency and WAF (wife acceptance factor). Initially, I was living in an appartment, and tbh I had a very limited amount of space for nerd stuff. This blog was intially authored during that time. When I moved to a house with a basement, I was able to distribute my nerdery more liberally. At this point, I deployed the hypervisor in the basement, and then acquired an SFF machine to live next to the fibre installation in the living room. 
+
+Picking an SFF machine was harder than I expected tbh. I wanted to ensure that it was small and quiet, but that it could handle 25G forwarding. Whilst I was investigating VPP for 100G rates in the DC, I established that I could forward 25G easy on a recent i5
 
 ### The VM
 
