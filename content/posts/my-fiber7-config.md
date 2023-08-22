@@ -13,17 +13,37 @@ hideComments = false
 color = "" #color from the theme settings
 aliases = ['/2021/11/my-fiber7-x-vyos-config.html']
 +++
-_Updated Jul 2022: Following an exchange ![on Twatter](https://twitter.com/AnomalRoil/status/1545017882534244353) it was clear to me that my explaination around the IPv6-PD usage was not very good, so I updated this section to clarify the prefix usage. I also feel that there is a gap here where the VyOS config should be able to pool the PD assignment, instead of me assigning it somewhere stupid like I did here._
+_Updated Aug 2022: After moving house I have been able to split my install between the basement and the house, so I bought myself an Dell Optiplex 7050 to be the VyOS router (the OTO is in the house), and then run a 10G fibre to the basement for the rest of the stuff. I think I will leave the post as is because the VM method is more interesting, but I will add a block on that below._
 
-As I discussed in my 10/25Gbit internet at home ![post](https://www.problemofnetwork.com/2021/11/1025-gbit-internet-at-home-very-21st.html), I recently moved away from an appliance based router at home, to instead use a fancy(ish) NIC passed through directly to a VM. The point of this was to try and increase the throughput, whilst maintaining a low footprint in terms of power, complexity and cost. I guess we can argue about the complexity bit, but it wasn't complex for me I guess. In this post I will break down the various sections of config to explain how they work and what they do.
+_Updated Jul 2022: Following an exchange [on Twatter](https://twitter.com/AnomalRoil/status/1545017882534244353) it was clear to me that my explanation around the IPv6-PD usage was not very good, so I updated this section to clarify the prefix usage. I also feel that there is a gap here where the VyOS config should be able to pool the PD assignment, instead of me assigning it somewhere stupid like I did here._
+
+As I discussed in my 10/25Gbit internet at home [post](https://www.problemofnetwork.com/2021/11/1025-gbit-internet-at-home-very-21st.html), I recently moved away from a dedicated router appliance at home, to instead use a fancy(ish) NIC passed through directly to a VM. The point of this was to try and increase the throughput, whilst maintaining a low footprint in terms of power, complexity and cost. I guess we can argue about the complexity bit, but it wasn't complex for me I guess. In this post I will break down the various sections of config to explain how they work and what they do.
+
+### To VM or not to VM
+
+In the homelab setting, its quite common to have hypervisors running for efficiency and WAF (wife acceptance factor). Initially, I was living in an apartment, and tbh I had a very limited amount of space for nerd stuff and this blog was intially authored during that time. When I moved to a house with a basement, I was able to distribute my nerdery more liberally. At this point, I deployed the hypervisor in the basement, and then started looking for something smaller to live next to the fibre installation in the living room.
+
+One great option is the TinyMiniMicro setup made famous now by [servethehome.com](https://www.servethehome.com/?s=tinyminimicro). I looked at a lot of these devices (waaay too much in fact), and found them to be really hard to source, and really expensive to acquire. That might work for your budget, so go check that out by all means. The Lenovo M92 tiny can expose an x8 riser if you look hard enough, and the [HP t740](https://www.servethehome.com/hp-t740-thin-client-review-tinyminimicro-with-pcie-slot-amd-ryzen/4/) is also interesting.
+
+The second obvious option is the Supermicro E series, combining Xeon chips with a BMC and lots of expansion options. I know people who have tried them, and are happy with them, but they cost between 500 and a grand, and more than anything else, theyre server class hardware, meaning hot, noisy, and ugly. Big no for the WAF...
+
+I wanted to get as close to 100 bucks as I could, which left me with ex business SFF machines.
+
+Picking an SFF machine was harder than I expected tbh. I wanted to ensure that it was small and quiet, but that it could handle 25G forwarding. Whilst I was investigating VPP for 100G rates in the DC, I established that I could forward 25G easy on a recent i5 CPU so I headed out to the auction sites to see what I could find.
+
+The biggest issue I hit was actually the PCIe slots. I started looking at the HP z220, which is the baby SFF version of my existing tower server. It has a pair of PCIe x16 slots, an x4 slot and a traditional PCI for good measure. I also found one for 99CHF in St Gallen, so this was exciting. Turns out that one of these x16 slots is only x4 electrically, and the one that is x16, only supports GPUs. This became a trend. I had no idea that companies were deploying x16 slots without the wires inside? Why? I also find it odd that you cant put literally anything you like into the x16 slot. As it happens, this is correlated to CPU features - some Intel CPUs have a GPU on the CPU die, and some do not. As a result, there are BIOS configs that demand a GPU in the x16 slot. Weird, but logical.
+
+Anyways, so began _A LOT_ of reading hardware manuals, and checking support docs. I could probably list off all the ones that didnt work, but then this would be many pages long. Lets just say that the Dell Optiplex 7050 is a proven device. Inside I have an 7th Gen I5 (7500), an on board M.2 NVMe slot, one PCIe x16 and x4 (without restrictions on use), plus onboard graphics to ensure that the both PCIe slots are free for NICs.
+
+I migrated my Mellanox CX4 2x25G card over and added an Intel i350 4x1G card, utilising the low profile brackets that came with these originally. If you dont have these brackets, google around and you will find them easy enough. I had to buy the i350 LP bracket and it cost me £6. At this point I booted VyOS from a USB stick installed it to the NVMe and then the remainder of the instructions apply as below.  
 
 ### The VM
 
-First, we have to deal with the VM itself. My hypervisor is VMware ESXi (free licence) running on an HP z620 tower workstation. There are ten-a-penny guides on how to setup ESXi and all that, plus I am sure someone is yelling PROXMOX at their screen right now. I have that running in a hyperconverged PVE/Ceph NUC cluster btw, I just don't use it for this.
+Assuming you arent interested in a baremetal install, then first, we have to deal with the VM itself. My hypervisor is VMware ESXi (free licence) running on an HP z620 tower workstation. There are ten-a-penny guides on how to setup ESXi and all that, plus I am sure someone is yelling PROXMOX at their screen right now. I have that running in a hyperconverged PVE/Ceph NUC cluster btw, I just don't use it for this.
 
 In ESXi I have a Mellanox ConnectX-4 dual port 25Gbit NIC for VyOS, and an Intel x710-DA2 10G card for the Hypervisor vSwitch uplinks. The Mellanox NIC is handed over fully to the VyOS VM. For that I had to also reserve the memory assignment for the VyOS VM as well. Given I have a lot of spare resource, I chose to assign 4x single core sockets and 8GB RAM. I am pretty certain I can cut this to just 1GB based on the historical consumption figures, but the CPU seems about right - during heavy downloading the CPU spikes up to at least one full core, and heavily multi threaded downloads at line rate can push it to the limit. I chose single core virtual sockets following a discussion with the Netgate performance engineers. They specifically advise people with bare metal installs to disable Hyper Threading and to fix recieve queues to specific cores as well. More on that later.
 
-For VyOS, I chose to build my own "production image" using the docker based build tool. There are a few different opinions on this, but since they started offering the Enterprise Edition, obtaining the free version became a little janky. The website offers the so called "rolling" release, which is built on every day when a newer commits to master are made. This means it is bleeding edge feature wise, and should be test complete, but not necessarily stable. Rather than try a bunch and work out what my stable would be, I chose to follow the community recommendation and build an image from the "current" 1.4 branch. The ![README](https://github.com/vyos/vyos-build/tree/current) was all the instructions I needed. I have since done a bunch of upgrades by building newer images and uploading them via scp, and simply activating them  it’s very easy to maintain.
+For VyOS, I chose to build my own "production image" using the docker based build tool. There are a few different opinions on this, but since they started offering the Enterprise Edition, obtaining the free version became a little janky. The website offers the so called "rolling" release, which is built on every day when a newer commits to master are made. This means it is bleeding edge feature wise, and should be test complete, but not necessarily stable. Rather than try a bunch and work out what my stable would be, I chose to follow the community recommendation and build an image from the "current" 1.4 branch. The ![README](https://github.com/vyos/vyos-build/tree/current) was all the instructions I needed. I have since done a bunch of upgrades by building newer images and uploading them via scp, and simply activating them - it’s very easy to maintain.
 
 So having configured the Mellanox NIC for passthrough and rebooted my ESXi box, then configuring the VM and adding a basic VMXNET3 for MGMT plus the PCI device for the WAN and inside trunk interface, I booted my ISO and ran the basic install process.
 
@@ -34,7 +54,7 @@ Trying to type in loads of things to the VMware Remote Console without copy/past
 Here are the basic commands I ran to sort out remote access:
 
 ```vyos
-set interfaces ethernet eth0 address '10.31.74.1/28'
+set interfaces ethernet eth0 address '10.31.74.1/27'
 set interfaces ethernet eth0 description 'MGMT'
 set system domain-name 'mydomain.co.uk'
 set system host-name 'vyos01'
@@ -46,7 +66,7 @@ Commit and Save and then swap to a terminal attached to the MGMT LAN
 
 ### The Network Design
 
-My home network is quite simple really (for a network specialist). There is a MGMT interface (eth0), a WAN interface (eth1) and an inside interface (eth2). WAN is a routed port and MGMT is an untagged member of vlan10. eth2 is a dot1q trunk and carries two VLANs. All VLANs are represented on the switch, and most host ports are untagged members of VLAN9 for Home use. VLAN8 is there for the Lab to be able to use the 10G directly. This isn't possible outside of the Hypervisor yet, but i'm looking into alternatives to that CSS610 with at least 4 SFP+ ports to help with this. Since the hardware side of the lab is in the basement, and I presently only have Powerline access there, its all moot.
+My home network is quite simple really (for a network specialist). There is a MGMT interface (eth0), a WAN interface (eth1) and an inside interface (eth2). WAN is a routed port and MGMT is an untagged member of vlan10. eth2 is a dot1q trunk and carries two VLANs. All VLANs are represented on the switch, and most host ports are untagged members of VLAN9 for Home use. VLAN8 is there for the Lab to be able to use the 10G directly. This isn't possible outside of the Hypervisor yet, but i'm looking into alternatives to that CSS610 with at least 4 SFP+ ports to help with this.
 
 Note: I like to use asciiflow for markdown friendly diagrams. Blogger seems to have a fixed width here, and this broke the ASCIIArt, so here you have a screenshot.
 
@@ -94,16 +114,16 @@ set service dhcp-server shared-network-name mgmt description 'MGMT'
 set service dhcp-server shared-network-name mgmt name-server '192.168.99.4'
 set service dhcp-server shared-network-name mgmt name-server '192.168.99.2'
 set service dhcp-server shared-network-name mgmt ping-check
-set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/28 default-router '10.31.74.1'
-set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/28 range scope1 start '10.31.74.2'
-set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/28 range scope1 stop '10.31.74.14'
+set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/27 default-router '10.31.74.1'
+set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/27 range scope1 start '10.31.74.2'
+set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/27 range scope1 stop '10.31.74.30'
 ```
 
 Lets assume you want some specific IPs on things in that management zone so you can have polling in the future. Here is the couple of lines you need for a reservation in that segment
 
 ```vyos
-set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/28 static-mapping core-sw ip-address '10.31.74.2'
-set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/28 static-mapping core-sw mac-address '2c:c8:1b:6a:c8:8d'
+set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/27 static-mapping core-sw ip-address '10.31.74.2'
+set service dhcp-server shared-network-name mgmt subnet 10.31.74.0/27 static-mapping core-sw mac-address '2c:c8:1b:6a:c8:8d'
 ```
 
 Logging is important, so lets ensure its all enabled
@@ -197,7 +217,7 @@ I also defined a group for inside networks that can be used later on. Feel free 
 
 ```vyos
 set firewall group network-group inside-nets network '192.168.99.0/24'
-set firewall group network-group inside-nets network '10.31.74.0/28'
+set firewall group network-group inside-nets network '10.31.74.0/27'
 ```
 
 #### ZBF - Policies
@@ -489,16 +509,26 @@ set protocols igmp-proxy interface eth2.9 role 'downstream'
 
 Secondly we need firewall rules. The rules from init7 are pretty broad, so I went more specific.
 
+Something a little interesting is that in an early release of 1.4, the IGMP proxy was a literal man in the middle, and so the firewall policy had to be `wan-local`. Somewhere along the line this changed and i had to reproduce the rules in the `wan-lan` zone. I keep both because it works, but its highly probably the `wan-lan` is all you need here. 
+
 ```vyos
 set firewall name wan-local rule 771 action 'accept'
 set firewall name wan-local rule 771 description 'Allow tv7 streams'
 set firewall name wan-local rule 771 destination address '239.77.0.0/16'
 set firewall name wan-local rule 771 destination port '5000'
 set firewall name wan-local rule 771 protocol 'udp'
- 
 set firewall name wan-local rule 772 action 'accept'
 set firewall name wan-local rule 772 description 'Allow tv7 IGMP'
 set firewall name wan-local rule 772 protocol 'igmp'
+
+set firewall name wan-lan rule 771 action 'accept'
+set firewall name wan-lan rule 771 description 'Allow tv7 streams'
+set firewall name wan-lan rule 771 destination address '239.77.0.0/16'
+set firewall name wan-lan rule 771 destination port '5000'
+set firewall name wan-lan rule 771 protocol 'udp'
+set firewall name wan-lan rule 772 action 'accept'
+set firewall name wan-lan rule 772 description 'Allow tv7 IGMP'
+set firewall name wan-lan rule 772 protocol 'igmp'
 ```
 
 And that is it. A fully operational VyOS config for Init7. This gist contains the full config (less user accounts, and some more specific things I have just in my environment).
