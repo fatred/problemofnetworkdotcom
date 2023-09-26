@@ -16,11 +16,11 @@ Linux Routing is becoming a thing with me. I cant decide if the motivation is th
 
 VPP has been on my radar now for a few years. I have tried and failed a few times to get it into production typically on the internet edge of a datacentre in place of something expensive like a Cisco ASR or a Juniper MX.
 
-If you dont know what VPP is yet, then I wonder how you ended up on this page, but should you need that primer, you can find it [https://s3-docs.fd.io/vpp/23.10/](on their docs here). TL:DR - its the opensource side of the project that underpins the ASR routers themselves. Yes. Thats right. VPP is essentially the engine behind the ASR.
+If you dont know what VPP is yet, then I wonder how you ended up on this page, but should you need that primer, you can find it ![https://s3-docs.fd.io/vpp/23.10/](on their docs here). TL:DR - its the opensource side of the project that underpins the ASR routers themselves. Yes. Thats right. VPP is essentially the engine behind the ASR.
 
-What it does is utilise Intel's DPDK tooling to have a process acquire full control of the NIC, away from the kernel. This might sound stupid, but there is logic here. Rather than force each and every packet along a waterfall pipeline of packet processing - whether the packet needs to visit that branch of code or not, VPP builds a graph for packet processing and then you get an optimised path that reduces latency across the board. Half of the way this is achieved, is by leveraging CPU design and preloading the operations into faster memory registers so the CPU doesnt have to lean on slower subsystems like RAM or Swap. Pim covers this in a much more approachable way at SwiNOG in 2021 - [https://www.swinog.ch/wp-content/uploads/2021/12/Pim-van-Pelt-IPng-Networks-Evolution-of-DPDK-Controlplanes.pdf](his slides are here)
+What it does is utilise Intel's DPDK tooling to have a process acquire full control of the NIC, away from the kernel. This might sound stupid, but there is logic here. Rather than force each and every packet along a waterfall pipeline of packet processing - whether the packet needs to visit that branch of code or not, VPP builds a graph for packet processing and then you get an optimised path that reduces latency across the board. Half of the way this is achieved, is by leveraging CPU design and preloading the operations into faster memory registers so the CPU doesnt have to lean on slower subsystems like RAM or Swap. Pim covers this in a much more approachable way at SwiNOG in 2021 - ![https://www.swinog.ch/wp-content/uploads/2021/12/Pim-van-Pelt-IPng-Networks-Evolution-of-DPDK-Controlplanes.pdf](his slides are here)
 
-As a result, VPP can provably route 100Gbit/s and more, using 10yo server hardware. Again, proven by Pim [https://www.youtube.com/watch?v=D7PF1cOAAUk&themeRefresh=1](at DENOG 2022).
+As a result, VPP can provably route 100Gbit/s and more, using 10yo server hardware. Again, proven by Pim ![https://www.youtube.com/watch?v=D7PF1cOAAUk&themeRefresh=1](at DENOG 2022).
 
 ## Why did the previous attempts fail?
 
@@ -37,7 +37,7 @@ VPP has long been defined as an API project. They openly admit the CLI (vppctl) 
 
 The expectation is that you take the C++ APIs and then write your tooling against these for config operations. Projects like Netgate's TNSR (they of PFsense fame), have done exactly that; they use the opensource VPP project, and wrap the config with their closed source tooling, so they have something they can sell as a product.
 
-These third party controlplanes utilise the VPP API to send the low level commands required to program that data plane. If you observe the [https://docs.fd.io/csit/rls2302/report/test_configuration/vpp_performance_configuration_2n_icx/l2_xxv710.html#n1l-25ge2p1xxv710-eth-l2xcbase-ndrpdr](CSIT test plans), you will see the API calls and parameters used as a very handy hint.
+These third party controlplanes utilise the VPP API to send the low level commands required to program that data plane. If you observe the ![https://docs.fd.io/csit/rls2302/report/test_configuration/vpp_performance_configuration_2n_icx/l2_xxv710.html#n1l-25ge2p1xxv710-eth-l2xcbase-ndrpdr](CSIT test plans), you will see the API calls and parameters used as a very handy hint.
 
 The CLI exposes these API calls in a very basic CLI, which having been written in C++ along with everything else, has some severe usability problems. As far as i can tell, C++ doesnt have a handy argparse module like python. Therefore, writing all the logic to correctly offer, parse and then utilise, every possible option in a command is challenging. If you type in an option that doesnt exist, or put things in the wrong order, you almost always get a bland generic error that give no context or feedback. Typically you end up with a "error (-54)" or similar. To move further, you then have to find the function behind the cli command, then backtrace until you find the point at which that error was raised, where you can finally lookup the enum to _maybe_ get half an idea as to what is wrong.
 
@@ -45,7 +45,7 @@ Finally, for all you _just google it_ engineers out there, let it be known that 
 
 I spent maybe 2 days chasing a valid IPSEC (p2p tun type) config, only to find later that I was basing my config off an example written for v17, and referring to documentation that was in the 23 tree but actually only valid for >=22.10.
 
-I recently stumbled upon [https://github.com/FDio/govpp](govpp), and I am interested to see if I can take that API interface, and then wrap my configs into a pared down CLI just for my use case. I think this would be much more stable for my team and more reliable for ongoing work, which for us is still quite constrained.
+I recently stumbled upon ![https://github.com/FDio/govpp](govpp), and I am interested to see if I can take that API interface, and then wrap my configs into a pared down CLI just for my use case. I think this would be much more stable for my team and more reliable for ongoing work, which for us is still quite constrained.
 
 Ultimately, you have to accept that the value of VPP is in its dataplane performance, and, sadly, the operator experience is a little janky today. 
 
@@ -55,9 +55,9 @@ I am a Network Engineer. I am an amateur programmer with plenty of Python knowle
 
 This, coupled with the janky CLI, meant that my initial attempts to _just make VPP work_ were completely fruitless. 
 
-Before you get buried into the VPP config, you first have the DPDK fun as well. It's pretty badly documented that DPDK has some strict requirements for the driver/firmware/hw rev collections. Each release of VPP is compiled with a specific version of DPDK under the hood, and so its important to lookup which DPDK your VPP instance uses, and then trawl the support matric to find the versions of the required dependencies. For my use case we have the Intel E810 NICs, which use the `ice` driver. The Recomended versions list is [https://doc.dpdk.org/guides/nics/ice.html#recommended-matching-list](here). I will write a short technical post on bare metal bootstrap later, but know that it's non-trivial to ensure all your required devices have the correct driver and fw package. If you find ourself unable to get VPP core working, always double check these basics before you rip all your hair out. 
+Before you get buried into the VPP config, you first have the DPDK fun as well. It's pretty badly documented that DPDK has some strict requirements for the driver/firmware/hw rev collections. Each release of VPP is compiled with a specific version of DPDK under the hood, and so its important to lookup which DPDK your VPP instance uses, and then trawl the support matric to find the versions of the required dependencies. For my use case we have the Intel E810 NICs, which use the `ice` driver. The Recomended versions list is ![https://doc.dpdk.org/guides/nics/ice.html#recommended-matching-list](here). I will write a short technical post on bare metal bootstrap later, but know that it's non-trivial to ensure all your required devices have the correct driver and fw package. If you find ourself unable to get VPP core working, always double check these basics before you rip all your hair out. 
 
-A lot of my more recent successes with VPP came as a result of spending time with Pim from [https://ipng.ch](IPng Networks). Pim is a VPP veteran who hsa been using it in Production on his hobby network that runs around Europe in a number of hosting centres. I was able to crross his palm with a very very modest amount of silver in exchange for some of his advice. After 2 hours I was up and running with instances and load testing hardware. After 4 hours I had production grade configs. He is still consulting with me to help me understand the performance aspects and the monitoring situation. 
+A lot of my more recent successes with VPP came as a result of spending time with Pim from ![https://ipng.ch](IPng Networks). Pim is a VPP veteran who hsa been using it in Production on his hobby network that runs around Europe in a number of hosting centres. I was able to crross his palm with a very very modest amount of silver in exchange for some of his advice. After 2 hours I was up and running with instances and load testing hardware. After 4 hours I had production grade configs. He is still consulting with me to help me understand the performance aspects and the monitoring situation. 
 
 If you are unsure of how to proceed, but really want to do so, reach out to him and see how he can accellerate your journey like he did mine. 
 
@@ -79,7 +79,7 @@ Until there is a mature, general purpose control plane for VPP it will remain di
 
 Pim spotted this was a problem a while ago. Linux has a great control plane powered by netlink already, but the challenge was how to handle punting between VPP and Kernel, with minimal impact to forwarding performance. There is an in-tree linux-cp plugin within VPP, but it had significant problems with syncing changes between the two control plane domains and development on that had stagnated after Netgate had written their own tools for TNSR. Pim looked at fixing these himself, but after a while began work on a new out of tree plugin that would implement an alternative approach to syncing between linux's netlink API and VPPs API.
 
-For some time now it has been slated for inclusion in-tree as "lcpng", but for reasons unknown it remains outside [https://github.com/pimvanpelt/lcpng](on Pim's github). There are a number of handy guides on his website that explain how to build and deploy VPP with his LCP plugins. 
+For some time now it has been slated for inclusion in-tree as "lcpng", but for reasons unknown it remains outside ![https://github.com/pimvanpelt/lcpng](on Pim's github). There are a number of handy guides on his website that explain how to build and deploy VPP with his LCP plugins. 
 
 With this deployed, we now have a high performance router that can utilise standard linux tools like FRR and Bird as routing daemons (control planes), where LCP then copies the actions it observes on the linux side into VPP API calls that instruct the packet forwaring engine itself.
 
@@ -87,17 +87,17 @@ Pim has written extensively about how he has dogfooded this setup for over a yea
 
 ### ... and vppcfg
 
-Whilst the lcpng plugin is capable of configuring the VPP instance without you typing one command into vppctl, it was clear that there were edge cases where having the ability to start the config sync by writing in the VPP side was preferable. This is what then motivated Pim to build [https://ipng.ch/s/articles/2022/03/27/vppcfg-1.html](vppcfg). This allows a simplified yaml config to be rendered into "verified compliant" cli commands that can be issued to the vppctl CLI, interactively or via the bootstrap method in the config files. By making this declarative he also handles the order of execution properly via a directed graph that is included in the config tooling. 
+Whilst the lcpng plugin is capable of configuring the VPP instance without you typing one command into vppctl, it was clear that there were edge cases where having the ability to start the config sync by writing in the VPP side was preferable. This is what then motivated Pim to build ![https://ipng.ch/s/articles/2022/03/27/vppcfg-1.html](vppcfg). This allows a simplified yaml config to be rendered into "verified compliant" cli commands that can be issued to the vppctl CLI, interactively or via the bootstrap method in the config files. By making this declarative he also handles the order of execution properly via a directed graph that is included in the config tooling. 
 
 This for me is so very close to the missing piece for "fixing" the janky CLI. 
 
 ### So its close... but how close?
 
-Part of the story with any new service/implementation always centres around testing. How do you prove, definitively, that something does what it says on the tin. [https://www.ietf.org/rfc/rfc2544.txt](RFC2544) outlines a series of testing strategies and for the purpose of this work we try to keep it simple. 
+Part of the story with any new service/implementation always centres around testing. How do you prove, definitively, that something does what it says on the tin. ![https://www.ietf.org/rfc/rfc2544.txt](RFC2544) outlines a series of testing strategies and for the purpose of this work we try to keep it simple. 
 
-I have deployed a [https://trex-tgn.cisco.com/](TRex traffic generator) on Debian 11 (OFED 5.7-1 doesn't build on deb12) with Mellanox 2x100G ConnectX5 CDAT cards with Trex v3.04. There are really nice instructions [https://trex-tgn.cisco.com/trex/doc/trex_appendix_mellanox.html](here) for that. Happily ignore the CentOS7 religious texts - Debian is fine. Death to DeadRat.
+I have deployed a ![https://trex-tgn.cisco.com/](TRex traffic generator) on Debian 11 (OFED 5.7-1 doesn't build on deb12) with Mellanox 2x100G ConnectX5 CDAT cards with Trex v3.04. There are really nice instructions ![https://trex-tgn.cisco.com/trex/doc/trex_appendix_mellanox.html](here) for that. Happily ignore the CentOS7 religious texts - Debian is fine. Death to DeadRat.
 
-Before we could test a router, we have to test the tester of course. Again, I think its important to give thanks and credit to Pim and Michal for their previous work on making the [https://ipng.ch/s/articles/2021/02/27/coloclue-loadtest.html](trex-loadtest script) and the [https://github.com/wejn/trex-loadtest-viz/](ruby rendering tool). 
+Before we could test a router, we have to test the tester of course. Again, I think its important to give thanks and credit to Pim and Michal for their previous work on making the ![https://ipng.ch/s/articles/2021/02/27/coloclue-loadtest.html](trex-loadtest script) and the ![https://github.com/wejn/trex-loadtest-viz/](ruby rendering tool). 
 
 According to the instructions, we should expect line rate everywhere except 64b (and since imix uses 64b in places, it should impact that too):
 
