@@ -11,6 +11,5 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
-aliases = ['/2021/11/my-fiber7-x-vyos-config.html']
 +++
 Last week i had some fun in Amsterdam, and at no point was there any debauchery.
