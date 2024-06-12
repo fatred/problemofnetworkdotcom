@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 color = "" #color from the theme settings
+aliases = ['/2024/06/updated-my-fiber7-vyos-config-to-1dot5.html']
 ---
 
 A while ago I wrote about my VyOS config for Init7's Fiber7-X product. Since then there has been a number of breaking changes, and a few additions that I would like to cover. 
@@ -280,11 +281,11 @@ set firewall ipv4 name wan-lan-v4 rule 1 state 'established'
 set firewall ipv4 name wan-lan-v4 rule 1 state 'related'
 set firewall ipv4 name wan-lan-v4 rule 2 action 'drop'
 set firewall ipv4 name wan-lan-v4 rule 2 state 'invalid'
-set firewall ipv4 name wan-lan-v4 rule 80 action 'accept'
-set firewall ipv4 name wan-lan-v4 rule 80 description 'internet to nginx proxymanager'
-set firewall ipv4 name wan-lan-v4 rule 80 destination address '192.168.99.252'
-set firewall ipv4 name wan-lan-v4 rule 80 destination port '80'
-set firewall ipv4 name wan-lan-v4 rule 80 protocol 'tcp'
+set firewall ipv4 name wan-lan-v4 rule 443 action 'accept'
+set firewall ipv4 name wan-lan-v4 rule 443 description 'internet to ingress'
+set firewall ipv4 name wan-lan-v4 rule 443 destination address '192.168.99.252'
+set firewall ipv4 name wan-lan-v4 rule 443 destination port '443'
+set firewall ipv4 name wan-lan-v4 rule 443 protocol 'tcp_udp'
 ```
 
 As well as the default log and description, I have a rule that matches our destination NAT rule we defined previously. Notice how we use the "real" IP of the host on the inside. This can catch some people out who are used to firewall rules referring to the mapped IP on the outside of the firewall. I chose the same rule ID as the NAT rule ID, but that is my personal choice, there is no requirement to syncronise these rule IDs.
@@ -472,10 +473,10 @@ set firewall ipv6 name wan-lan-v6 rule 1 state 'related'
 set firewall ipv6 name wan-lan-v6 rule 2 action 'accept'
 set firewall ipv6 name wan-lan-v6 rule 2 protocol 'ipv6-icmp'
 set firewall ipv6 name wan-lan-v6 rule 443 action 'accept'
-set firewall ipv6 name wan-lan-v6 rule 443 description 'internet to nginx proxymanager'
+set firewall ipv6 name wan-lan-v6 rule 443 description 'internet to ingress'
 set firewall ipv6 name wan-lan-v6 rule 443 destination port '443'
-set firewall ipv6 name wan-lan-v6 rule 443 destination address '2a03:2c20:2c20:9::252'
-set firewall ipv6 name wan-lan-v6 rule 443 protocol 'tcp'
+set firewall ipv6 name wan-lan-v6 rule 443 destination address 'fda4:7911:df45:9::252'
+set firewall ipv6 name wan-lan-v6 rule 443 protocol 'tcp_udp'
 ```
 
 I think most of this is self explanatory with the one small exception being we had to swap our DHCPv4 rule for a DHCPv6 rule in the wan-local-6 policy. Same problem, different execution.
@@ -531,6 +532,6 @@ set firewall ipv4 name wan-lan-v4 rule 772 description 'tv7'
 set firewall ipv4 name wan-lan-v4 rule 772 protocol 'igmp'
 ```
 
-And that is it. A fully operational VyOS config for Init7. This gist contains the full config (less user accounts, and some more specific things I have just in my environment).
+And that is it. A fully operational VyOS config for Init7. 
 
 Please let me know your comments and thoughts. I am always willing to learn.

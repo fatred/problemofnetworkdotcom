@@ -13,6 +13,10 @@ hideComments = false
 color = "" #color from the theme settings
 aliases = ['/2021/11/my-fiber7-x-vyos-config.html']
 +++
+### Updated Jun 2024: This Vyos 1.4 config is now broken if you use a recent vyos 1.5 rolling release. I made a new post [here](https://www.problemofnetwork.com/2024/06/updated-my-fiber7-vyos-config-to-1dot5.html) that mirrors this one, but with the correct syntax!
+
+---
+
 _Updated Aug 2022: After moving house I have been able to split my install between the basement and the house, so I bought myself an Dell Optiplex 7050 to be the VyOS router (the OTO is in the house), and then run a 10G fibre to the basement for the rest of the stuff. I think I will leave the post as is because the VM method is more interesting, but I will add a block on that below._
 
 _Updated Jul 2022: Following an exchange [on Twatter](https://twitter.com/AnomalRoil/status/1545017882534244353) it was clear to me that my explanation around the IPv6-PD usage was not very good, so I updated this section to clarify the prefix usage. I also feel that there is a gap here where the VyOS config should be able to pool the PD assignment, instead of me assigning it somewhere stupid like I did here._
