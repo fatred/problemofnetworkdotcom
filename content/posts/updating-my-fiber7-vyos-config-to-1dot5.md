@@ -1,4 +1,4 @@
----
++++
 title = "My Updated Fiber7-X VyOS 1.5 Config"
 date = "2024-06-12T13:00:00+02:00"
 author = "John Howard"
@@ -12,7 +12,7 @@ readingTime = false
 hideComments = false
 color = "" #color from the theme settings
 aliases = ['/2024/06/updated-my-fiber7-vyos-config-to-1dot5.html']
----
++++
 
 A while ago I wrote about my VyOS config for Init7's Fiber7-X product. Since then there has been a number of breaking changes, and a few additions that I would like to cover. 
 
