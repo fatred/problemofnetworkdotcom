@@ -12,6 +12,8 @@ As per usual with me, it ended up being so long that it had to be its own post. 
 > and so it is my understanding I can use their products in an opensource 
 > sense. If you feel differently, feel free to use openbao. 
 
+Also funny; when I pushed this to github, it complained at me that I was posting a vault token to a git repo. I'm pleased that github scanning is picking up on this in the push process - that's going to help a lot of people from firing a footgun. :D
+
 ## Vault bootstrap
 
 Main Options:
