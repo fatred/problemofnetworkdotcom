@@ -1,6 +1,9 @@
 ---
 title: "Bootstrapping Hashi Vault"
-date: 2024-11-18T21:08:23+01:00
+date: 2024-11-18T18:00:00+01:00
+author: John Howard
+tags: ["vault", "netdevops", "ansible", "python"]
+showFullContent: false
 ---
 
 Recently I have spent a reasonable amount of time in Hashicorp vault. As part of a mini series on how to make better use of it in Network Automation, I started writing this as a "intro" to a post on the subject.
