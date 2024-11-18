@@ -8,3 +8,7 @@
 4. check the github pipeline to see the preview URL
 5. make a PR
 6. merge and profit
+
+## useful links
+
+Hugo Markdown syntax [cheatsheet](https://whungeewheengee.com/tech_stuff/markdown-syntax/#blockquotes)
