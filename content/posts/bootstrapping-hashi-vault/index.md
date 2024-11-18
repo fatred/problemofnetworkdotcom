@@ -58,7 +58,7 @@ Assuing you dont want that, at this point you are in fact ready to [get cracking
 
 ### Vault Docker
 
-If you want to have something closer to a UAT instance that is a little more persistent, you will need to setup something more real than `vault server -dev`. 
+If you want to have something closer to a UAT instance that is a little more persistent, you will need to setup something more real than `vault server -dev`. Honestly I would want TLS on something "real", but thats a level of faff i'm not up for today. Again, I expect I will come back to this for a "more prod like" setup later.
 
 My goto here is the official docker image and a couple of docker volumes. Here is a basic docker-compose.yml you can use (hat tip to [this blog](https://ambar-thecloudgarage.medium.com/hashicorp-vault-with-docker-compose-0ea2ce1ca5ab) for some starter hints)
 
