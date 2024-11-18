@@ -108,17 +108,17 @@ listener "tcp" {
 EOF
 ```
 
-You can then start that up with `cd ~/vault; docker compose up -d`
+That is the docker bit ready to go - you can then start that up with `cd ~/vault; docker compose up -d`
 
 #### Vault first use
 
-When we run this compose _the first time_, we have to initialise the database.
+When we run this compose _the first time_, we have to initialise the vault backend.
 
 First, get a shell on the container `docker compose exec -it vault sh`
 
 Second, fire up the init: `VAULT_ADDR=http://localhost:8200 vault operator init`
 
-My instance (among other things) gave me back this: 
+My example instance (among other things) gave me back this: 
 ```
 Unseal Key 1: /YnhBEd8lnWp632thqoML7iC9wye1pi372NzA8zr7ZxI
 Unseal Key 2: gua+WSvI7/bV6Cmnea/x694girGbmXJprObpFrS7o8g0
@@ -131,7 +131,7 @@ Initial Root Token: hvs.trdFUmCJ00eTm6FuWq3NrmBR
 
 We now have to unseal the vault. By default, the vault content is "sealed" and this means the content on disk is unreadable by the system. The keys to unseal and thus allow the content to be accessed, are split into a number of shards, so that multiple people can be "keyholders" and as long as you have as many "shares" needed to cross the "threshold", you can unlock. Read more [here](https://devopstronaut.com/hashicorp-vault-101-4-unsealing-vault-with-key-shards-shamirs-secret-sharing-algorithm-8f7754832815) if you like.
 
-TO do the unlock, we need to run the `vault operator unseal` command 3 times, pasting a new key from the unseal list each time. I picked the first, third and fifth key for lols.
+To do the unlock, we need to run the `vault operator unseal` command 3 times, pasting a new key from the unseal list each time. I picked the first, third and fifth key for lols. You can also do this on the webinterface btw.
 
 Keep an eye on the "unseal progress" field...
 
@@ -185,9 +185,9 @@ Cluster ID      3e7c8e39-28e6-c1e8-e594-8ca3f8ab32a5
 HA Enabled      false
 ```
 
-You'll notice that the last time the change of `sealed: false`.
+You'll notice that after the last unseal completed, the change of value for `sealed: false`.
 
-Lets move onto the vault contents...
+Lets move onto the vault internal structure...
 
 > Note: All of the following will make use of the "Initial Root Token" provided to us when we completed the init.
 
@@ -218,7 +218,7 @@ Double check you are all sorted with a quick look at the webui on http://_server
 
 ![docker-compose-first-login](docker-compose-first-login.png)
 
-Notice that this time we don't have the secrets engine enabled by default...
+Notice that this time we don't have the secrets engine enabled by default. This is "factory defaults" vs dev server config.
 
 #### Engine Setup
 
