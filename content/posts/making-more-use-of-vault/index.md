@@ -4,6 +4,7 @@ date: 2024-11-18T20:00:00+01:00
 author: John Howard
 tags: ["vault", "netdevops", "ansible", "python"]
 showFullContent: false
+draft: true
 ---
 
 It's remarkably easy to get sucked into hardcoding things that probably should live outside your code. 
