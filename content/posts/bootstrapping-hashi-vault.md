@@ -31,7 +31,11 @@ This is one of those things that reminds you how cool single Go binaries are.
 
 In a terminal simply type `vault server -dev -dev-root-token-id=root` and you will get an instance running on your local system on port 8200, with a default authentication token that is simply: `root`.
 
+![vault-server-dev](/img/bootstrapping-hashi-vault/vault-server-dev.png)
+
 [Click](http://localhost:8200) the link it provides to visit the webUI and enter the token `root` and login. You will now see the administrator view of the UI. On the screen should be two secrets "engines" called cubbyhole and secret. Engines are not secret stores themselves, but sort of plugins that reflect _what_ is being stored. You then create secret mount points that use these engines.
+
+![vault-server-dev-first-login](/img/bootstrapping-hashi-vault/vault-server-dev-first-login.png)
 
 #### So what is a Cubbyhole? 
 
@@ -45,7 +49,7 @@ Yes. At some point in the past there were two key/value engines, v1 and v2, and 
 
 Secret stores use "real" storage and persist to whatever backend the vault config file has configured. In the dev instance, **this is a ramdisk**, and data will be lost when the process stops (hence why its dev use only). If you want to be able to retain data between restarts of the vault instance, you will have to look at the next option which uses docker to persist to disk. 
 
-At this point you are ready to rejoin the main thread about storing secrets, one section down.
+At this point you are ready to [get cracking](/posts/making-more-use-of-vault/)
 
 ---
 
@@ -228,7 +232,7 @@ UI method:
 
 ---
 
-At this point you should now have a functional - **!!!NON PRODUCTION!!!** vault server that you can continue your adventures with.
+Depending on which path you took, you should now have a functional - **!!!NON PRODUCTION!!!** vault server that you can [continue your adventures with](/posts/making-more-use-of-vault/).
 
 Later I will post some follow up on a production-like service setup, but tbh, you should probably just learn the vault tooling, and build something that works in your environment, rather than copying some blog.
 
