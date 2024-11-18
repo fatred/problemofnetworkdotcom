@@ -36,7 +36,7 @@ Inside of vault your secrets live somewhere. Before we spoke about engines, whic
 
 > Note: I don't like that naming, but I cant change the dev instance, and I want this to be generic. Play about with names and referencing the content using the examples with different names - you'll get the hang of it.
 
-A path is describing the top level name for this secret, _within_ the mount-point. You can have many paths containing one or more secrets underneath in the k/v store.
+A path is describing the top level name for this secret, _within_ the mount-point. Assume for a moment you were looking at the Vault UI, and you clicked on the "secret" _mount-point_. The list of objects you see in this view are all the path options you have to work with. You can have any number of paths within a mount-point, containing one or more secrets underneath in the k/v store.
 
 The data is the actual key value pairs we find under this path, which could be one or more entries, in flat k/v, or if you like, a dictionary encoded with json.
 
@@ -64,7 +64,7 @@ You really can choose any scheme you like. Keep an eye on these specific example
 
 Be mindful that there is a high RoI for security by centrally storing your secrets in a place where the access is not only authenticated, but logged and audited. That comes with a cost to operations because all those extra network calls and crypto, and potentially, the vault being locked and unusable, means your data is slow, or posibilty entirely unreachable at runtime. 
 
-TLDR: Vault isn't for general purpose use. Protect what needs protecting, not everything and the kitchen sink.
+TLDR: Vault isn't for general purpose k/v storage. Protect what needs protecting, not everything and the kitchen sink.
 
 So now we know what our building blocks are, lets dig into some examples. 
 
