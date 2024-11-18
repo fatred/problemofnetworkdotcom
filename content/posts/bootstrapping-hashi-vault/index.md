@@ -26,7 +26,7 @@ Main Options:
 
 I will ignore the last and maybe talk about that in another post one day. There are lots of people doing that if you google for it in the meantime. Unless you already have Consul, or you like Russian Dolls, I would suggest you skip that and just use RAFT on some local disk, then split the cluster over a few machines. I only mention it to be sure you realise everything else we discuss below is a test setup, and not something to trust with real data!
 
-### Vault dev
+### Vault -dev
 
 This is one of those things that reminds you how cool single Go binaries are. 
 
@@ -52,7 +52,7 @@ Yes. At some point in the past there were two key/value engines, v1 and v2, and 
 
 Secret stores use "real" storage and persist to whatever backend the vault config file has configured. In the dev instance, **this is a ramdisk**, and data will be lost when the process stops (hence why its dev use only). If you want to be able to retain data between restarts of the vault instance, you will have to look at the next option which uses docker to persist to disk. 
 
-At this point you are ready to [get cracking](/posts/making-more-use-of-vault/)
+Assuing you dont want that, at this point you are in fact ready to [get cracking](/posts/making-more-use-of-vault/)
 
 ---
 
