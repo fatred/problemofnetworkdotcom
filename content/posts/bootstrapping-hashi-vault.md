@@ -113,9 +113,9 @@ When we run this compose _the first time_, we have to initialise the database.
 
 First, get a shell on the container `docker compose exec -it vault sh`
 
-Second fire up the init: `VAULT_ADDR=http://localhost:8200 vault operator init`
+Second, fire up the init: `VAULT_ADDR=http://localhost:8200 vault operator init`
 
-My instance gave me back this: 
+My instance (among other things) gave me back this: 
 ```
 Unseal Key 1: /YnhBEd8lnWp632thqoML7iC9wye1pi372NzA8zr7ZxI
 Unseal Key 2: gua+WSvI7/bV6Cmnea/x694girGbmXJprObpFrS7o8g0
@@ -126,7 +126,11 @@ Unseal Key 5: zcF+I0rZKRV/TutGklMs+bhbTyWNbQFA+LvHHrQ4so0y
 Initial Root Token: hvs.trdFUmCJ00eTm6FuWq3NrmBR
 ```
 
-We now have to unseal the vault. Run the `vault operator unseal` command 3 times, pasting a new key from the unseal list each time. Keep an eye on the "unseal progress" field...
+We now have to unseal the vault. By default, the vault content is "sealed" and this means the content on disk is unreadable by the system. The keys to unseal and thus allow the content to be accessed, are split into a number of shards, so that multiple people can be "keyholders" and as long as you have as many "shares" needed to cross the "threshold", you can unlock. Read more [here](https://devopstronaut.com/hashicorp-vault-101-4-unsealing-vault-with-key-shards-shamirs-secret-sharing-algorithm-8f7754832815) if you like.
+
+TO do the unlock, we need to run the `vault operator unseal` command 3 times, pasting a new key from the unseal list each time. I picked the first, third and fifth key for lols.
+
+Keep an eye on the "unseal progress" field...
 
 ```
 / # vault operator unseal
@@ -215,7 +219,7 @@ Notice that this time we don't have the secrets engine enabled by default...
 
 #### Engine Setup
 
-We will limit ourselves to the same kv vs secret engine
+Since we want to get to the same position as the dev server, we will limit ourselves to the same kv v2 secret engine.
 
 UI method: 
 
