@@ -34,11 +34,11 @@ This is one of those things that reminds you how cool single Go binaries are.
 
 In a terminal simply type `vault server -dev -dev-root-token-id=root` and you will get an instance running on your local system on port 8200, with a default authentication token that is simply: `root`.
 
-![vault-server-dev](img/bootstrapping-hashi-vault/vault-server-dev.png)
+![vault-server-dev](vault-server-dev.png)
 
 [Click](http://localhost:8200) the link it provides to visit the webUI and enter the token `root` and login. You will now see the administrator view of the UI. On the screen should be two secrets "engines" called cubbyhole and secret. Engines are not secret stores themselves, but sort of plugins that reflect _what_ is being stored. You then create secret mount points that use these engines.
 
-![vault-server-dev-first-login](img/bootstrapping-hashi-vault/vault-server-dev-first-login.png)
+![vault-server-dev-first-login](vault-server-dev-first-login.png)
 
 #### So what is a Cubbyhole? 
 
@@ -216,7 +216,7 @@ type                service
 
 Double check you are all sorted with a quick look at the webui on http://_serverip_:8200 and use the same initial root token for auth.
 
-![docker-compose-first-login](img/bootstrapping-hashi-vault/docker-compose-first-login.png)
+![docker-compose-first-login](docker-compose-first-login.png)
 
 Notice that this time we don't have the secrets engine enabled by default...
 
@@ -231,11 +231,11 @@ UI method:
 3. set the name to "secret" (same name as dev for simplicity)
 4. click "enable engine"
 
-![select-new-engine-dialog](img/bootstrapping-hashi-vault/enable-secret-engine.png)
+![select-new-engine-dialog](enable-secret-engine.png)
 
-![enable-secret-kv-v2-engine-dialog](img/bootstrapping-hashi-vault/new-kv-v2-secret.png)
+![enable-secret-kv-v2-engine-dialog](new-kv-v2-secret.png)
 
-![secret-engine-ready](img/bootstrapping-hashi-vault/secret-engine-ready.png)
+![secret-engine-ready](secret-engine-ready.png)
 
 ---
 
