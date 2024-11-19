@@ -20,7 +20,7 @@ Here I want to share some snippets that break down the barrier to entry at least
 
 ## Vault in Python
 
-Here we cover the use case of once-shot scripting and/or something more structured like Temporal or Stackstorm.
+Here we cover the use case of one-shot scripting and/or something more structured like Temporal or Stackstorm.
 
 Main Options: 
 * HTTPS API via requests library (easy, but clunky)
@@ -133,7 +133,9 @@ We can now install hvac with pip
 
 `pip3 install hvac`
 
-Lets start simple, and use the create_or_update_secrets function to submit the objects that may or may not exist from the primitives post. If they don't exist, they will be created, if they do, they will be updated to match your _exact_ spec.
+Lets keep it simple, and use the create_or_update_secrets function to submit the objects that may or may not exist from the primitives post. If they don't exist, they will be created, if they do, they will be updated to match your _exact_ spec. 
+
+> Note: later in your journey you might want to make more surgical updates to your vault objects. If you upstream is json, you can use the `patch` method and it will _only_ add/change the parts of the total object that you provided. 
 
 ```python
 from hvac import Client
@@ -411,7 +413,7 @@ def fetch_kv(secret_request: SecretRequest) -> SecretResponse:
     )
 ```
 
-As you can see, there is a lot of utility to hiding the repetitve work away in a utility module, and then having clean, simple code that calls these _wherever you need them_ later down the line. This is the "Dont repeat yourself (DRY)" principle in action. 
+As you can see, there is a lot of value to hiding the repetitve work away in a utility module, and then having clean, simple code that calls these _wherever you need them_ later down the line. This is the "Dont repeat yourself (DRY)" principle in action. 
 
 Hopefully this was educational for you, and if you want more, hit me up on the socials somewhere and let me know what's good or not about it.
 
