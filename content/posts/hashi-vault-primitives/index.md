@@ -6,14 +6,6 @@ tags: ["vault", "netdevops", "ansible", "python"]
 showFullContent: false
 ---
 
-It's remarkably easy to get sucked into hardcoding things that probably should live outside your code. 
-
-Recently I found myself trying to clean up a lot of bad behaviour in our repos, not least of all, secrets management. Here we will cover a few basics that show how to use Hashicorp Vault in more places. 
-
-> If you want to get into the examples below, then I recommend you follow the [bootstrap post](/posts/bootstrapping-hashi-vault/) to get a vault setup that matches the below examples. The git repo can also be found [here](github.com/fatred/practical-vault-in-netops.git)
-
----
-
 ## Some Vault Primitives
 
 Pretty much everywhere you go in vault you will find you need a few building blocks to make _anything_ work.
