@@ -239,7 +239,7 @@ UI method:
 
 ---
 
-Depending on which path you took, you should now have a functional - **!!!NON PRODUCTION!!!** vault server that you can [continue your adventures with](/posts/making-more-use-of-vault/).
+Depending on which path you took, you should now have a functional - **!!!NON PRODUCTION!!!** vault server that you can [continue your adventures with](hashi-vault-primitives/). If you already know all you need to know about that, you can get into the examples [here](/posts/making-more-use-of-vault/).
 
 Later I will post some follow up on a production-like service setup, but tbh, you should probably just learn the vault tooling, and build something that works in your environment, rather than copying some blog.
 
