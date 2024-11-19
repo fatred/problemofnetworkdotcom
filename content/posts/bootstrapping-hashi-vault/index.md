@@ -52,7 +52,7 @@ Yes. At some point in the past there were two key/value engines, v1 and v2, and 
 
 Secret stores use "real" storage and persist to whatever backend the vault config file has configured. In the dev instance, **this is a ramdisk**, and data will be lost when the process stops (hence why its dev use only). If you want to be able to retain data between restarts of the vault instance, you will have to look at the next option which uses docker to persist to disk. 
 
-Assuing you dont want that, at this point you are in fact ready to [get cracking](/posts/making-more-use-of-vault/)
+Assuing you dont want that, at this point you can skip to the bottom of the page for the next steps.
 
 ---
 
@@ -239,7 +239,7 @@ UI method:
 
 ---
 
-Depending on which path you took, you should now have a functional - **!!!NON PRODUCTION!!!** vault server that you can [continue your adventures with](/posts/making-more-use-of-vault/).
+Depending on which path you took, you should now have a functional - **!!!NON PRODUCTION!!!** vault server that you can [continue your adventures](/posts/hashi-vault-primitives/) learning Vault. If you already know all you need to know about that, you can get into the examples [here](/posts/making-more-use-of-vault/).
 
 Later I will post some follow up on a production-like service setup, but tbh, you should probably just learn the vault tooling, and build something that works in your environment, rather than copying some blog.
 
