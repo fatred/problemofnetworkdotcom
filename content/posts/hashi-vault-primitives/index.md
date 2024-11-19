@@ -149,4 +149,4 @@ As you get further and further into Vault, you will find policies and accessors,
 
 TLDR: Vault isn't for general purpose k/v storage. Protect what needs protecting, not everything and the kitchen sink. Also consider that whatever you do the first time will probably end up in the bin when you get into the technology more. Lean into that - don't overthink things.
 
-So now we know what our building blocks are, lets dig into some [real life examples](/posts/making-more-use-of-vault/) with clients. 
+So now we know what our building blocks are, lets dig into some [real life examples](/posts/making-use-of-vault-python/) with python. 
