@@ -219,7 +219,7 @@ Again, this is kinda ugly and we have a bunch of metadata in the mix. If we just
 v1: {'wireguard': {'ip': {'inner': '100.64.255.0/31', 'outer': '100.64.0.0/30'}, 'keys': {'privkey': 'privkey1', 'pubkey': 'pubkey2'}}}
 ```
 
-Why is is `my_version1['data']['data']`? No idea sorry.
+Why is the actual secret hiding down there in `my_version1['data']['data']`? No idea sorry.
 
 ## Bonus content: mini-library
 
@@ -229,7 +229,7 @@ first, a test script:
 
 `use_vault.py`:
 ```python
-rom vault_services import (
+from vault_services import (
     quick_vault_auth_from_env,
     export_vault_client_token,
     quick_vault_auth_from_token,
@@ -237,12 +237,22 @@ rom vault_services import (
     SecretRequest,
 )
 
+# establish a client from env vars
 env_client = quick_vault_auth_from_env()
 
+# export its token so I can establish an identical client outside of this 
+# execution scope (i.e. across workflow activities)
 env_client_token = export_vault_client_token(env_client)
 
+# demonstrate how to launch a client using only the token.
+#
+# note this is pointless in this contrived example, but if you were using a 
+# different auth method like cert or OIDC, you might not enjoy doing this 
+# over and again, where using an token from some other authenticated session
+# is easier by far.
 token_client = quick_vault_auth_from_token(token=env_client_token)
 
+# build a SecretRequest using our pydantic model
 my_request_on_env_client = SecretRequest(
     vault_token=env_client_token,
     secret_mount="secret",
@@ -250,10 +260,12 @@ my_request_on_env_client = SecretRequest(
     secret_name="username",
 )
 
+# send the request and get the response back (which is also a pydantic model)
 env_client_response = fetch_kv(secret_request=my_request_on_env_client)
 
+# print it out for you to see it.
 print(
-    f"you asked for {my_request_on_env_client.model_dump()['secret_name']} and the result was {env_client_response.model_dump()['value']}"
+    f"you asked for \"{my_request_on_env_client.model_dump()['secret_name']}\" and the result was \"{env_client_response.model_dump()['value']}\""
 )
 ```
 
@@ -286,6 +298,7 @@ else:
 VAULT_TOKEN_MIN_TTL = 30
 
 
+# pydantic model that describes a secret request
 class SecretRequest(BaseModel):
     vault_token: str
     secret_mount: str
@@ -293,6 +306,7 @@ class SecretRequest(BaseModel):
     secret_name: str
 
 
+# pydantic model that describes a secret response
 class SecretResponse(BaseModel):
     key: str
     value: str
@@ -361,12 +375,24 @@ def quick_vault_auth_from_token(token: str) -> Client:
 
 
 def export_vault_client_token(vault_client: Client) -> str:
-    # take the vault client and return just the token as a string
+    """
+    take the vault client and return just the token as a string
+
+    Returns:
+        str: Vault Token in string format
+    """
     return vault_client.token
 
 
 def _check_vault_token_ttl_ok(vault_client: Client) -> bool:
-    # test its actually authenticated
+    """
+    test a vault client object is actually authenticated to the server
+     and has at least 30 seconds of TTL left
+     (as defined by constant VAULT_MIN_TTL)
+
+    Returns:
+        bool: if the Vault Client object is
+    """
     if vault_client.is_authenticated():
         current_token = vault_client.auth.token.lookup_self()
         return current_token["data"]["ttl"] > VAULT_TOKEN_MIN_TTL
@@ -375,7 +401,13 @@ def _check_vault_token_ttl_ok(vault_client: Client) -> bool:
 
 
 def _check_vault_token_expired(vault_client: Client) -> bool:
-    # test its actually authenticated
+    """
+    test a vault client object is actually authenticated to the server
+     and has
+
+    Returns:
+        bool: if the Vault Client object is
+    """
     if vault_client.is_authenticated():
         current_token = vault_client.auth.token.lookup_self()
         return current_token["data"]["ttl"] > 0
@@ -384,7 +416,12 @@ def _check_vault_token_expired(vault_client: Client) -> bool:
 
 
 def _renew_vault_token(vault_client: Client) -> bool:
-    # test its actually authenticated
+    """
+    renew (restart the ttl clock) on a vault client's token.
+
+    Returns:
+        bool: if renew was successful
+    """
     if vault_client.is_authenticated():
         vault_client.auth.token.renew_self()
         return True
@@ -393,6 +430,18 @@ def _renew_vault_token(vault_client: Client) -> bool:
 
 
 def fetch_kv(secret_request: SecretRequest) -> SecretResponse:
+    """
+    take a secret request and fetch the named secret.
+
+    Args:
+        secret_request (SecretRequest): parameters for the request to vault
+
+    Raises:
+        Exception: error relating to the failure to get the secret
+
+    Returns:
+        SecretResponse: typed object with the key/value response
+    """
     vault_client = quick_vault_auth_from_token(
         token=secret_request.model_dump()["vault_token"]
     )
