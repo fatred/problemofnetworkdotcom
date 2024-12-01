@@ -5,8 +5,6 @@ author: John Howard
 tags: ["vault", "netdevops", "ansible", "python"]
 showFullContent: false
 ---
-# WIP!
-
 As we come towards the end of this mini series, we talked about how to [bootstrap](/posts/bootstraping-hashi-vault/) a hashicorp vault for non-prod use, what [primitives](/posts/hashi-vault-primitives/) vault uses for secrets management, and how to talk to vault from [python](/posts/making-use-of-vault-python/). 
 
 Here we will dig into how you can access vault content within an Ansible workflow, ensuring you never more have the pain of managing secrets with `ansible-vault`, or worse, storing them plain text in a repo somewhere.
