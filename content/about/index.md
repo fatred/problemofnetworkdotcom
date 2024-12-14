@@ -1,6 +1,10 @@
 # whoami
 
-👋 Hi, I am John Howard (@protonjhow), Head of Network Infrastructure for Proton AG, the company behind ProtonMail and ProtonVPN.
+👋 Hi. I am John Howard 
+
+U+1F4BC By day, I am Head of Network Infrastructure (@protonjhow) for Proton AG, the company behind ProtonMail and ProtonVPN.
+
+U+1F3E1 Out of hours, I am a nerd, a dad and a shitposter, commonly found making noise on bluesky (@fatred.bgp4.life). I can usually be found in the packetpushers and NAF slack groups, and the Nokia discord servers @fatred.
 
 👀 I am interested in Practical Network Automation for real networks.
 
