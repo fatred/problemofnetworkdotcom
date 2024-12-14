@@ -13,7 +13,9 @@ This has a couple of real tangible benefits.
 2. No need to fight `openssl` to wrangle self signed (or for the really brave, a manual CA)
 3. Full automation support to enable estate wide renewal in minutes, not _half a lifetime_.
 
-So lets get into it.
+Much of this content was abstracted from the Original Hashi docs, which are brilliant, and can be found [here](https://developer.hashicorp.com/vault/tutorials/pki/pki-engine).
+
+So all that being said, lets get into it.
 
 ---
 
