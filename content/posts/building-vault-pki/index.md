@@ -1,7 +1,6 @@
 ---
 title: "Using Vault PKI to Secure Devices"
 date: 2024-12-14T08:50:37+01:00
-draft: true
 ---
 
 ## abstract
