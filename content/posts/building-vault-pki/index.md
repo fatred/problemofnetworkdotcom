@@ -13,7 +13,9 @@ This has a couple of real tangible benefits.
 2. No need to fight `openssl` to wrangle self signed (or for the really brave, a manual CA)
 3. Full automation support to enable estate wide renewal in minutes, not _half a lifetime_.
 
-So lets get into it.
+Much of this content was abstracted from the Original Hashi docs, which are brilliant, and can be found [here](https://developer.hashicorp.com/vault/tutorials/pki/pki-engine).
+
+So all that being said, lets get into it.
 
 ---
 
@@ -33,13 +35,13 @@ Before running anything you will need the [vault client](https://developer.hashi
 
 As previously discussed, Vault offers many options for storing secrets, but it can also be used to produce them as well. A software HSM if you will. To be able to make use of the PKI tooling, we have to enable the PKI engine, and configure a number of nerd knobs to ensure that what we deliver is of value.
 
-> Note: Vault is written in golang, and it's generally understood that the golang crypto libraries (at least the ones used fof x509 work in vault), are incredibly strict in terms of applying the RFCs. There are a number of things that openssl might allow, that the vault will not. Two examples I ran into include use of underscores in common names (vault say no, openssl say meh), and invalid PathLength attributes in the chainlength field - if you say 1 and you have an intermediate CA, then this will be invalid. You should read your error messages carefully, and refer to the [issues in the stdlib](https://github.com/golang/go/issues?q=is%3Aissue+crypto%2Fx509) for `crypto/x509`. Chances are you will find something specific in there.
+> Note: Vault is written in golang, and it's generally understood that the golang crypto libraries (at least the ones used for x509 work in vault), are incredibly strict in terms of applying the RFCs. There are a number of things that openssl might allow, that the vault will not. Two examples I ran into include use of underscores in common names (vault say no, openssl say meh), and invalid PathLength attributes in the chainlength field - if you say 1 and you have an intermediate CA, then this will be invalid. You should read your error messages carefully, and refer to the [issues in the stdlib](https://github.com/golang/go/issues?q=is%3Aissue+crypto%2Fx509) for `crypto/x509`. Chances are you will find something specific in there.
 
 Due to the nature of trust, and the power that the Root Cert holds, there are schools of thought that say the Root should not be an online thing. There are examples on the Terraform docs site where the Root CA is operated by a tool called certstrap (which is really really cool btw). I don't want to make this post any longer then neccesary, so if that sounds like something you will need, you can refer to these instructions, they are very similar. For today's purposes, we keep the root online in the Vault.
 
 So, lets get started with some policies we will need in the vault system. In the repo, you want to look inside the `terraform` subfolder.
 
-If you review the items in the repo, I have broken them out to make them easier to find and interact with. This is not actually required in TF world, but thats an exercise for the reader.
+As you review the items in the repo, you'll note that I have broken them out into files that logically group things to make them easier to find and interact with. This is not actually required in TF world, but "good tf repo structure" is an exercise for the reader.
 
 #### providers.tf
 
@@ -94,9 +96,11 @@ Finally, we enable the `userpass` auth method, then create two accounts:
 * the `pki-admin` user who gets the `pki-admin-vault-policy` on login, which means they can do all the things that policy permits
 * the `device-deployer` user who get the `pki-reader-vault-policy` on login, which means they can only read the creds/certs from the automation repo.
 
+> Duh: It should shock no-one to hear that baking a username and password into the TF repo is a bad idea. You could hand these off to env vars in a CI pipeline maybe, but I personally wouldn't. In reality, many will use a ldap or oidc provider to move auth off to a central source. This extra step makes no sense to show in this kind of material so lets just say in a production scenario this should be using _your_ existing auth system. Vault supports pretty much anything you would.
+
 #### deploying this
 
-make sure the network-automation-kv, policies and auth files are uncommented, and then run your first `terraform apply`
+make sure the network-automation-kv, policies and auth files are as per the main branch of the repo, and then run your first `terraform apply`
 
 ```
 ➜  terraform git:(main) terraform apply      
@@ -364,7 +368,7 @@ resource "vault_pki_secret_backend_intermediate_cert_request" "csr-request" {
 }
 ```
 
-Unlike our root which is psuedo self-signed, we generate an RSA 4096 key and then build a CSR with our issuing CN. We could write this to disk (especially if we were signing that from an extranl root), but the CSR can be fetched from state too.
+Unlike our root which is psuedo self-signed, we generate an RSA 4096 key and then build a CSR with our issuing CN. We could write this to disk (especially if we were signing that from an external root), but the CSR can be fetched from state too.
 
 ```
 # optional: here we dump the certificate request contents out to the file system
@@ -451,6 +455,8 @@ In this example, we are being a little broad and saying that the `pon_issuing_ro
 If you dont see any problems with whatever (if ever) you renamed something, you can apply and watch as the entities are created, and the root/issuing CA certs are dumped onto the screen (and on disk in the terraform folder).
 
 ### Shipping Certs with Terraform
+
+#### Cheeky test cert
 
 Assuming that worked, we have a quick "test" where we can generate a cert from terraform and check it manually.
 
@@ -542,9 +548,197 @@ vc35penRFqL2jSq+ZUtjNLw8sTwlmOFwQPsPNus0LGLAlJUPvJxIaEUjnOAmEAyV
 
 > Private Key intentionally broken to protect my innocence from the github secret leaking complaint AIs.
 
+#### Applying PKI permissions
+
+That cert was requested and signed in one step by terraform. Terraform is using the root token in my case, so that means we didnt use the policies. If we try to make a cert using the pki-admin user, it will fail. 
+
+If you return to the `policies.tf` file you will see a block at the bottom that was commented out. 
+
+```
+###
+# uncomment the below into the "pki-admin-vault-policy" between line 48/49
+## Work with pki secrets engine
+#path "pki*" {
+#  capabilities = [ "create", "read", "update", "delete", "list", "sudo", "patch" ]
+#}
+###
+```
+
+Follow those instructions to update the pki-admin-vault policy so that it now looks like this: 
+
+```
+resource "vault_policy" "pki-admin-vault-policy" {
+  name = "pki-admin-vault-policy"
+
+  policy = <<EOT
+## place to store account details for automation towards the devices
+path "network-automation/+/device-creds" {
+  capabilities = ["create", "update"]
+}
+path "network-automation/+/device-creds" {
+  capabilities = ["read","list"]
+}
+## place to store certificates we generate for the devices
+path "network-automation/+/device-certs" {
+  capabilities = ["create", "update"]
+}
+path "network-automation/+/device-certs" {
+  capabilities = ["read","list"]
+}
+## Vault TF provider requires ability to create a child token
+path "auth/token/create" {  
+  capabilities = ["create", "update", "sudo"]  
+}
+# Work with pki secrets engine
+path "pki*" {
+ capabilities = [ "create", "read", "update", "delete", "list", "sudo", "patch" ]
+}
+EOT
+}
+```
+
+If we do another `terraform apply` we should see that being updated in place:
+
+```
+Terraform will perform the following actions:
+
+  # vault_policy.pki-admin-vault-policy will be updated in-place
+  ~ resource "vault_policy" "pki-admin-vault-policy" {
+        id     = "pki-admin-vault-policy"
+        name   = "pki-admin-vault-policy"
+      ~ policy = <<-EOT
+            ## place to store account details for automation towards the devices
+            path "network-automation/+/device-creds" {
+              capabilities = ["create", "update"]
+            }
+            path "network-automation/+/device-creds" {
+              capabilities = ["read","list"]
+            }
+            ## place to store certificates we generate for the devices
+            path "network-automation/+/device-certs" {
+              capabilities = ["create", "update"]
+            }
+            path "network-automation/+/device-certs" {
+              capabilities = ["read","list"]
+            }
+            ## Vault TF provider requires ability to create a child token
+            path "auth/token/create" {  
+              capabilities = ["create", "update", "sudo"]  
+            }
+          + # Work with pki secrets engine
+          + path "pki*" {
+          +   capabilities = [ "create", "read", "update", "delete", "list", "sudo", "patch" ]
+          + }
+        EOT
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+vault_policy.pki-admin-vault-policy: Modifying... [id=pki-admin-vault-policy]
+vault_policy.pki-admin-vault-policy: Modifications complete after 0s [id=pki-admin-vault-policy]
+
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+```
+
+We can now test this with a second test, this time we will use the HTTPAPI and return some JSON, just to be fancy. To make the output clean, I pipe that data to `jq`. you can skip that if you like and just pick out the bits you need. I would install `jq` tho. Its awesome.
+
+First we login and fetch the token:
+
+```
+curl -s \
+    --request POST \
+    --data '{"password": "Velly-Secure-Cred!"}' \
+    https://vault.problemofnetwork.com:8200/v1/auth/userpass/login/pki-admin | jq .auth.client_token
+```
+
+If you did `jq` filter then the string we get back is what we would set into the `VAULT_TOKEN`, or could be used in the webUI to login with "token" type if we felt like being _really_ extra.
+
+If you didnt `jq`, then youll need to pluck out the .auth.client_token which should start `hvs.something`
+
+Now, we make our certificate request. Since we are using the HTTPAPI we dont need to export the token to ENV, we send it as a header.
+
+We then put the common_name and the ttl into the --data block as a json formatted string. You can also write yourself a .json file and replace that `--data '{}'` appraoch with `--data @payload.json`
+
+The `pki_int` in the request url is the mount-point name from the resource we created in pki.tf at line 62.
+
+The `problemofnetwork-dot-com` part at the end of the request url is the role name from the resource we created in pki.tf at line 115
+
+```
+curl -s \
+    --header "X-Vault-Token: hvs.CAESIA8JLdluHo0o1AxgxoOAr61Nh_xgzkvCy3x_vjDZFf79Gh4KHGh2cy51V1ZFc2x2ZnRyQUhrNElololololololololol" \
+    --request POST \
+    --data '{"common_name": "curl.problemofnetwork.com", "ttl": "86400" }' \
+    https://vault.problemofnetwork.com:8200/v1/pki_int/issue/problemofnetwork-dot-com | jq 
+```
+
+and what we get back is a big JSON blob with the key, cert, chain and metadata.
+
+```json
+{
+  "request_id": "5d8e80e2-e17f-86dd-c7ae-ce5e5b6f2d7b",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "ca_chain": [
+      "-----BEGIN CERTIFICATE-----\nMIIF6jCCA9KgAwIBAgIUIllrJVj36u4qFrnbmBKDDSAojeswDQYJKoZIhvcNAQEL\nBQAwJTEjMCEGA1UEAxMaUHJvYmxlbSBPZiBOZXR3b3JrIFJvb3QgRzEwHhcNMjQx\nMjE2MDgyMTU2WhcNMjUwNjEzMTIyMjI2WjAmMSQwIgYDVQQDExtwcm9ibGVtb2Zu\nZXR3b3JrLUlzc3VpbmctRzEwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoIC\nAQDYwWz+a1vqEh0z+YGK+CU7ftdj1GxAKo0mUkQpLJMjGTGacQA+NvdUxy\nv1evaFeUoWdi5ldl9Ud/aTSDV1KrHjzrxOsEj4w8y5jK6R1DHtMGF54XsDeKZu9q\nsoNnKDscTgE6TzsZJ+4IIQUJTRKfPG9F1WgiZ3+CioIyajxA2u7eyWJKaS9WG/PJ\nRKMvVDPUgr99lBHOZUqJz/VSDWpkkGzWvBeepMVpIFXXzyGuOLoDtzP7k44DtFZq\ne4a0/U5i2yLN1qnXqySIEkgPjQgp5j/YsGiIwxEYxLrkH0m50rZEn0xWFdWfm3nV\nSqYG/uQIAukcJ3ESnhCE8OuM7pQ2L9pwfyuP5UoUsuMDJyuv/dPUjZSa+N3XFpB3\n7nfMtN+cWt2hv+d4LEfkuFu2F9uPuIDMXndhsG/DjSAnR8ONi3QvTR1wtH0PACs1\neGdtROqOYc3dyYW4MtrOV8dun1GVgBrQFRX0wzSEHuznPQIDAQABo4IBDzCCAQsw\nDgYDVR0PAQH/BAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFOVF8Xto\nBeYBSj75jJRTY/qPqyAjMB8GA1UdIwQYMBaAFCUwQ8Lo7F0uraO4mvrlmSzA+4dH\nMEQGCCsGAQUFBwEBBDgwNjA0BggrBgEFBQcwAoYoaHR0cDovL3ZhdWx0LmZhdHJl\nZC5jby51azo4MjAwL3YxL3BraS9jYTAmBgNVHREEHzAdghtwcm9ibGVtb2ZuZXR3\nb3JrLUlzc3VpbmctRzEwOgYDVR0fBDMwMTAvoC2gK4YpaHR0cDovL3ZhdWx0LmZh\ndHJlZC5jby51azo4MjAwL3YxL3BraS9jcmwwDQYJKoZIhvcNAQELBQADggIBAJH3\n9dWKUhZYcS8S+qgLHyzgLA4EfyGwf7Sl8XsaHfxgxcJAlNJ+tPZWTre5i9BVHxQc\nXHYK0x3PN8lCI9iMLxHxI4NJejBTq4pPKZtvmBDIhuQJ/Ozw8isT3fDJsh4N5GDh\nZ86AenVuOzO0bPx7Zwkal+y13hFkg/VnlG71vrEVMLVyvMT7MhfhmYYa307Hidhp\nbp1otsHyLEMiGD76z1dL0w7DZjxvGC+7aUn5Vl2o+t8YV4VZwAo9/fnWkJhcnnVp\n8dLamJYfD3dVswYfkSUO499wjfYAXU7vjLbONa4jYITrfFh4SskFFm2RFhdMpDoI\n/xSB8ZWVFHSs5b7PMeqD8ZYhCOzpSYN/1PfOeeR41Qc7yqroIu5dM4lEOVd7ZJkP\n+ZpPPCD7lxC2/EEyCTvaRF3V8dc6sdoVTA0b2ftJez3QSZ8b1whN4JJCH88HzAH4\nnwX1DK2PRwBHbRdsgZpnOKBjgXi0dsopou7jJ8Sh70MiNrQ8V6PvEdfalsE8vfV5\nlTRuACBJIkwqZurqquh30USPZWk6GUbY+9R2Gq892kHgtuse+HmIZRZBZ0A6urtV\nNkQhJVmKgVnqnQ8F8aGUrtgw2YwXGsXDxY4hqBlyO8UEZ7f2xwRQCDMn8DM81WBD\nOIROkylhwiJtVrFEfr3iNuCBZMFMVz0ine4tKDeM\n-----END CERTIFICATE-----",
+      "-----BEGIN CERTIFICATE-----\nMIIFvzCCA6egAwIBAgIUE0/G6POV+xoD+7Mb/BTgvTYbQoAwDQYJKoZIhvcNAQEL\nBQAwJTEjMCEGA1UEAxMaUHJvYmxlbSBPZiBOZXR3b3JrIFJvb3QgRzEwHhcNMjQx\nMjE2MDgyMTU2WhcNMzQxMjE0MDgyMjE4WjAlMSMwIQYDVQQDExpQcm9ibGVtIE9m\nIE5ldHdvcmsgUm9vdCBHMTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIB\nAMDU7JUiRcfuCtOBoDY24FHBLxk2z6Y1QfUFB/JJQUOxgsJEpdp7+rWZRZ7kZq9Q\nJcPAl64Pj7eLQdLp6IV0h6Uoe2GxWCnpQ0TkdKonP7EjYQ6CJvc5mYjExEMpnN81\nzjFN/uucQ8UZwTzzc3hBQioXfqtNjtMObBCMyPcYbsqnvLws2a\n5KDTuvzJg+ghsWJk/45XODsmdpBrSbHSmz+g64C2vvHisnx/FOALt4R1kaFGof+j\nBmgbKQBPTcGvTnicnj2zGadPPoeg1OCW7fzmAbDiQZAZiO1OPDcwvs/sgIsU0Qtu\nnuyLQokhVaraMImKpx+XK288/OePXZtpvynf6bHCqrecXTioO4OlyL0tGUnZ7t4E\n+L6pLdiGZA4TemdAU/6iici3DB7Yjb92dr9Rih4ZPTPmldGdxOkIbwyCpzI/Bcvt\njutBl7gaLdI12BHAzzpx75DQLcuof72dDAeACRQ523AYeLB9qlaOfsbFcGlPJIAI\n94kV0lM1A92zkKhOgWr0Nzuz6DS6wb0PncEmPLlOYXFZAgMBAAGjgeYwgeMwDgYD\nVR0PAQH/BAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFCUwQ8Lo7F0u\nraO4mvrlmSzA+4dHMB8GA1UdIwQYMBaAFCUwQ8Lo7F0uraO4mvrlmSzA+4dHMEQG\nCCsGAQUFBwEBBDgwNjA0BggrBgEFBQcwAoYoaHR0cDovL3ZhdWx0LmZhdHJlZC5j\nby51azo4MjAwL3YxL3BraS9jYTA6BgNVHR8EMzAxMC+gLaArhilodHRwOi8vdmF1\nbHQuZmF0cmVkLmNvLnVrOjgyMDAvdjEvcGtpL2NybDANBgkqhkiG9w0BAQsFAAOC\nAgEAAe8hdYxi0R1CbCOAKo+nQfvNOrPdERcqkb3Aitexh3pnKscYq2cBwVhnFa+e\nVMdnNz1vUTlAJebD1GXVGcv+dfsTGrXMCuSC8sfA3QAm82n2hPEHw8w5210PsjYQ\nrv029bJLMTWmH+HTi284rRlAvAtgNDadBMVufTJ8SlamO0hwBaS0rDBgkra4eymZ\nYWAU4eDZ+iJPD4+uMC8npV+6E24orNxREujg4rwd1ZACQnbFqMgniAAG0WySuecZ\nZ15TQkNLVt6YFU6cgrsbaS8K/Z5M7IUGBXCXffbiZsg+sPQ63SJG0+e9ukc6NSPx\nxVBfVgWi1Ne23lIFu9J3hlLxxgjwMMt7y5qa0vQSitaLd6V8IvCtCIAd/aa3XuZW\nKvh+tjzki7cI09W+GSDZ4KEkCUDWXTIA02ZHA6uSgxqq1zYdTTyHDftcvPiRlfmB\n3eC/lrgoPg0YEa5EI3ArlImPTUvZ+5S/0NR1hHaElkOvq1gTEO9JFhDX5GBsd8IK\nd7wtS26NvEuH9usOWfib0/vHK/d7eeVpkQup+N8vj8p79ox/wRODgt4XHNEHHXqo\nd0QDhs9KXeElZlgqnbCDr6WYKWOgbj7AcNCR613STEeekSziV15NMvodCeQLYGVv\nmtJUSypN9TnpDttGBTzVj/NgONHDYqhMtoV/Fbe8NLsNkXs=\n-----END CERTIFICATE-----"
+    ],
+    "certificate": "-----BEGIN CERTIFICATE-----\nMIIFcTCCA1mgAwIBAgIUTbrCbLgiSGuYV0X/yl6C9PnoARowDQYJKoZIhvcNAQEL\nBQAwJjEkMCIGA1UEAxMbcHJvYmxlbW9mbmV0d29yay1Jc3N1aW5nLUcxMB4XDTI0\nMTIxNjA4MjY1N1oXDTI0MTIxNzA4MjcyNlowJDEiMCAGA1UEAxMZY3VybC5wcm9i\nbGVtb2ZuZXR3b3JrLmNvbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIB\nAM++G0czy35LBVecV+ID71fUHIq3msvyF0eHQKAoNzfxaN7fBpx5cdFNq2MBnlao\naEMBElJuizhBYVhVfgZTBThuxcCXw3T0ACL1PnFCPEPK2XiU2mobhzgH6+4NRzpB\nV1B55GzmPjj9spmpCsQyNGF5bPFEpdBo3BV6Uisw3lUXHNkDP/GXbNDvog+Ac\nPXDNbddWjqCU4pCAsG9X1rR6ob4lXeSL1Xa5y/r4Zj0PcDqRFaOXJtVzmFjv6/hG\nqvacEXfsw3d/IiEOlfM1A5bKjBeBTYbQrpaCv9wRWBmGbWW+wOSNnsSVye7ryuXa\nX6ItUACbtgxiEQ7SYm8H7HIA7C/4kLt31OJbTGuDsvhW/yoeJvWrXkH6TNY/ZpC4\nnXSPJYBO4rQrpFXEj4G6IWnesfyicACDLBNp3WxUiiyv7pM1kuIM2UzrOWWZOQMw\njMuZyoPdpPYMZRe+J/NAJQJI/yMUmGsBNjIdrDbtiyUsbEzeVV/NdjHR9ZUTAZUG\nB8/kvoD1ZHFF69jmzVvnWYVa1WZx2gRtKY4JgZVmfPR3AgMBAAGjgZgwgZUwDgYD\nVR0PAQH/BAQDAgOoMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAdBgNV\nHQ4EFgQUfH/92wfcoEkh5dVIHlj7K1MpTOgwHwYDVR0jBBgwFoAU5UXxe2gF5gFK\nPvmMlFNj+o+rICMwJAYDVR0RBB0wG4IZY3VybC5wcm9ibGVtb2ZuZXR3b3JrLmNv\nbTANBgkqhkiG9w0BAQsFAAOCAgEAylp9NeB1Eld7g+3goks1lXKVaGaLSchL5N1q\nvPW7pr0e0EVW/Yq0mubW6YRequDeEsSrqIx1hf42d2bGCf7rcGK7hy/Gn8XwevC6\n8D3WsOiSh1w4S22z11EOx5B9Ks/TqELIWZp+llSUZwY8xpI/luBHuJ/I+q3rlwpM\nyDxnXXRIDfUFr1wOZ+NK8GVDrSADExSz8bbLhlYdU0ytYAYWE3W6ojRvMy9yasLf\nNeOdW/nhy6jUvm3vRMX1z+uJom46Ed/nbEKirRNMb/XnVGCEbUNeE7RYlxFmW/E5\nQgJacVhpYB2iYfx6RtbIf5SXH8AuTEu1vI+qaskHBqn3hfQJqBwwe8rrz9hQisOv\nPGEoPnBJvoo/9Wd+UT8peWnaSG4/Ck9MHAZHnAy4lA6s31DxsIQwvcNKMqSDe74f\nKkjTr8P0EwU3aSHQK4c27DhGZBmWdDWW6QIimx9CkbpNcIdODrnLYdeB7t60o8Wk\nyPgjDqNmsNWGouWXtJsT1bpdfOow5Uvr9DbwVX9i1q4getRtixhN9UfdvhfPui15\nNXcR8EcWminOJ8PCr/u7oAL2myCvD2ZkZ5uCytWd69PA1rEGhIB3tYUlduFY8eKW\nlae1OUzwcZF2EKxY4xlAMJjotuHkm5b1X+dj7EdlNn7DUVGgQbSmJkxYLcrMPIZj\nckrL5VQ=\n-----END CERTIFICATE-----",
+    "expiration": 1734424046,
+    "issuing_ca": "-----BEGIN CERTIFICATE-----\nMIIF6jCCA9KgAwIBAgIUIllrJVj36u4qFrnbmBKDDSAojeswDQYJKoZIhvcNAQEL\nBQAwJTEjMCEGA1UEAxMaUHJvYmxlbSBPZiBOZXR3b3JrIFJvb3QgRzEwHhcNMjQx\nMjE2MDgyMTU2WhcNMjUwNjEzMTIyMjI2WjAmMSQwIgYDVQQDExtwcm9ibGVtb2Zu\nZXR3b3JrLUlzc3VpbmctRzEwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoIC\nAQDYwWz+a1vqEh0z+YGK+CU7ftdj1GxAKo0mUkQpLJMjGTGacQA+vvUBbjdinvF3\ngYd7p36tEiH1KEpAXiap+JDdeR8nxdmVF5rNMnb6eTC1RMZofXLRr7egm9+fMi8S\necz+X7QViiZd+I9j4u9OjLU2byvOwAaw8kAr/woBYjMHCfKGsYXElwwEmlkxEClT\nPvrN0eoArh7UCvf9HHWeoOHEEFlkXaNnOvYA9KeKONbWZGqJAnQZ1Kc1b+CioIyajxA2u7eyWJKaS9WG/PJ\nRKMvVDPUgr99lBHOZUqJz/VSDWpkkGzWvBeepMVpIFXXzyGuOLoDtzP7k44DtFZq\ne4a0/U5i2yLN1qnXqySIEkgPjQgp5j/YsGiIwxEYxLrkH0m50rZEn0xWFdWfm3nV\nSqYG/uQIAukcJ3ESnhCE8OuM7pQ2L9pwfyuP5UoUsuMDJyuv/dPUjZSa+N3XFpB3\n7nfMtN+cWt2hv+d4LEfkuFu2F9uPuIDMXndhsG/DjSAnR8ONi3QvTR1wtH0PACs1\neGdtROqOYc3dyYW4MtrOV8dun1GVgBrQFRX0wzSEHuznPQIDAQABo4IBDzCCAQsw\nDgYDVR0PAQH/BAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFOVF8Xto\nBeYBSj75jJRTY/qPqyAjMB8GA1UdIwQYMBaAFCUwQ8Lo7F0uraO4mvrlmSzA+4dH\nMEQGCCsGAQUFBwEBBDgwNjA0BggrBgEFBQcwAoYoaHR0cDovL3ZhdWx0LmZhdHJl\nZC5jby51azo4MjAwL3YxL3BraS9jYTAmBgNVHREEHzAdghtwcm9ibGVtb2ZuZXR3\nb3JrLUlzc3VpbmctRzEwOgYDVR0fBDMwMTAvoC2gK4YpaHR0cDovL3ZhdWx0LmZh\ndHJlZC5jby51azo4MjAwL3YxL3BraS9jcmwwDQYJKoZIhvcNAQELBQADggIBAJH3\n9dWKUhZYcS8S+qgLHyzgLA4EfyGwf7Sl8XsaHfxgxcJAlNJ+tPZWTre5i9BVHxQc\nXHYK0x3PN8lCI9iMLxHxI4NJejBTq4pPKZtvmBDIhuQJ/Ozw8isT3fDJsh4N5GDh\nZ86AenVuOzO0bPx7Zwkal+y13hFkg/VnlG71vrEVMLVyvMT7MhfhmYYa307Hidhp\nbp1otsHyLEMiGD76z1dL0w7DZjxvGC+7aUn5Vl2o+t8YV4VZwAo9/fnWkJhcnnVp\n8dLamJYfD3dVswYfkSUO499wjfYAXU7vjLbONa4jYITrfFh4SskFFm2RFhdMpDoI\n/xSB8ZWVFHSs5b7PMeqD8ZYhCOzpSYN/1PfOeeR41Qc7yqroIu5dM4lEOVd7ZJkP\n+ZpPPCD7lxC2/EEyCTvaRF3V8dc6sdoVTA0b2ftJez3QSZ8b1whN4JJCH88HzAH4\nnwX1DK2PRwBHbRdsgZpnOKBjgXi0dsopou7jJ8Sh70MiNrQ8V6PvEdfalsE8vfV5\nlTRuACBJIkwqZurqquh30USPZWk6GUbY+9R2Gq892kHgtuse+HmIZRZBZ0A6urtV\nNkQhJVmKgVnqnQ8F8aGUrtgw2YwXGsXDxY4hqBlyO8UEZ7f2xwRQCDMn8DM81WBD\nOIROkylhwiJtVrFEfr3iNuCBZMFMVz0ine4tKDeM\n-----END CERTIFICATE-----",
+    "private_key": "-----BEGIN RSA PRIVATE KWEY-----\nMIIJKAIBAAKCAgEAz74bRzPLfksFV5xX4gPvV9Qcireay/IXR4dAoCg3N/Fo3t8G\nnHlx0U2rYwGeVqhoQwESUm6LOEFhWFV+BlMFOG7FwJfDdPQAIvU+cUI8Q8rZeJTa\nahuHOAfr7g1HOkFXUHnkbOY+OP2ymakKxDI0YXls8USl0GjcFXpSKzDeVRcc2QM/\n8Zds0O+iD5Ee+GezR/Kh4m\n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\n-----END RSA PRIVATE KWEY-----",
+    "private_key_type": "rsa",
+    "serial_number": "4d:ba:c2:6c:b8:22:48:6b:98:57:45:ff:ca:5e:82:f4:f9:e8:01:1a"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null,
+  "mount_type": "pki"
+}
+```
+
+> Note: again I broke the response here to prevent the secrets fairies getting overly excited.
+
+### Revoking a cert
+
+Just to wrap this up, we just made two certs that are effectively trash. We could let them expire in 24h, but im going to show the HTTPAPI method to revoke them for completeness.
+
+Its quite simple: 
+
+```
+curl -s \
+    --header "X-Vault-Token: ..." \
+    --request POST \
+    --data '{"serial_number": "4d:ba:c2:6c:b8:22:48:6b:98:57:45:ff:ca:5e:82:f4:f9:e8:01:1a"}' \
+    https://vault.problemofnetwork.com:8200/v1/pki_int/revoke | jq .
+
+```
+
+Updating the token correctly, should then give a `state: revoked`:
+
+```
+{
+  "request_id": "33a0620f-ca79-ce11-e3e5-a491da7aac38",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "revocation_time": 1734338617,
+    "revocation_time_rfc3339": "2024-12-16T08:43:37.01260581Z",
+    "state": "revoked"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null,
+  "mount_type": "pki"
+}
+```
+
+Tada: a "secure" way to generate everything you need to durably encrypt a TLS endpoint.
+
 ### Root Trust
 
-Finally, we need to ensure that our system trusts this Root CA going forward, or else this was a monumental waste of time.
+But finally, we need to ensure that our system trusts this Root CA going forward, or else this was a monumental waste of time.
 
 How you do this will vary between your operating system and implementation, so rather than repeating a lot prior art, here is a pretty good summary of how to do it that I stole of the internet:
 
