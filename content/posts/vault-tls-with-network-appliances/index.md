@@ -1,7 +1,6 @@
 ---
 title: "Vault TLS With Network Appliances"
 date: 2024-12-29T17:25:58-05:00
-draft: true
 ---
 
 ## Abstract
