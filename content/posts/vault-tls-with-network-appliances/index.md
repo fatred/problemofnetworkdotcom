@@ -1208,4 +1208,4 @@ If you made it this far, thanks for sticking with me on this one. The easter egg
 
 If you have questions or feedback you can find me in the naf and packetpushers slack, or you can fire me an email.
 
-Until next time, I hope you have a great day.
+Until next time, thanks for your visit and I hope you have a great day.
