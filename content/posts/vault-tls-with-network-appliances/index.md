@@ -246,6 +246,8 @@ Extensions
 
 I don't think I discussed this yet, but when you make a request to vault with any of these generate_certificate endpoints, vault will generate a private key, build a csr using the parameters you provide (overlaid with the role defaults), and then sign that. What you get back is a json blob with the key and the cert, including the chain as well for convenience. All of this is done in memory, and none of the key/cert data is stored on vault itself. 
 
+> This in-mem key creation can make these http calls slow. If you are running vault on a low powered box like a Pi, be very aware that these vault requests will take many seconds if not a minute to complete...
+
 In other words, once vault sends you the TLS content you requested, if you don't do anything, it will not be possible to retrieve the same information from the PKI engine in the future. 
 
 So, if we want to keep a copy of the cert for later use (or to ensure a segregation of duties), we need to request a cert in one function, then push it back into vault as a key/value pair for retrieval on demand.
