@@ -242,6 +242,8 @@ Extensions
     ip: 172.20.20.2
 ```
 
+> Note: Why 86400 seconds (1 day)? Because this is a demo and I don't want to clog up my revocation lists. We will cover longer certs at the end...
+
 I don't think I discussed this yet, but when you make a request to vault with any of these generate_certificate endpoints, vault will generate a private key, build a csr using the parameters you provide (overlaid with the role defaults), and then sign that. What you get back is a json blob with the key and the cert, including the chain as well for convenience. All of this is done in memory, and none of the key/cert data is stored on vault itself. 
 
 In other words, once vault sends you the TLS content you requested, if you don't do anything, it will not be possible to retrieve the same information from the PKI engine in the future. 
