@@ -7,7 +7,7 @@ date: 2024-12-29T17:25:58-05:00
 
 Now that we have a Vault, with a TLS Issuing CA, and some idea of how to get certs out of it, lets look at how we can use this in a "real" world scenario to put a valid TLS profile onto a Network Appliance (fancy word for a switch I guess).
 
-> Why did I say appliance, and not Router or Switch? Weeeeeell, think about it. You manage a lot of network _stuff_ over HTTPS protocols these days, even when its not actually a web interface you are using to do it. We can also manage load balancers, Wireless Controllers, NAS devices etc etc etc. Lets not get bogged down in terminology and accept that network kit comes in all shapes and sized these days. Trusted TLS is the goal here.
+> Why did I say appliance, and not Router or Switch? Weeeeeell, think about it. You manage a lot of network _stuff_ over HTTPS protocols these days, even when its not actually a web interface you are using to do it. We can also manage load balancers, Wireless Controllers, NAS devices etc etc etc. Lets not get bogged down in terminology and accept that network kit comes in all shapes and sizes these days. Trusted TLS is the goal here.
 
 ## Pre-Requisites
 
@@ -102,7 +102,7 @@ In the previous section we imported the `ansible-inventory.yml` file from the cl
 
 > Its worth noting that unless you use the -c flag when you destroy a topology, this folder is persisted between clab deployments, and its content is re-used. When you `admin save` a config, the container writes the config here for example. 
 
-So, looking back to the `ansible_inventory.yml` we can see all the nokia devices are added by the clab templated to a group called `nokia_srlinux`, so lets setup a `group_vars/nokia_srlinux.yaml` which has the nokia defaults for gnmi defined, and the CA set to use this ca folder.
+So, looking back to the `ansible_inventory.yml` we can see all the nokia devices are added by the clab template to a group called `nokia_srlinux`, so lets setup a `group_vars/nokia_srlinux.yaml` which has the nokia defaults for gnmi pre-defined, and the CA set to use this ca folder.
 
 ```
 ---
@@ -117,7 +117,9 @@ connection_options:
       insecure: False
 ```
 
-with _this_ information we are now able to make **trusted** connections to the gNMI server on each device, and get/set stuff on the device. Lets test that with our `show-version.py`
+> You can just remove the comments on the file I put in the repo obvs.
+
+With _this_ information we are now able to make **trusted** connections to the gNMI server on each device, and get/set stuff on the device. Lets test that with our `show-version.py`
 
 ```python
 from nornir import InitNornir
