@@ -1159,6 +1159,14 @@ So here we are at the end of a monster post.
 
 We are now able to use vault to create valid, long lived, trustworthy certificates for our environment. We can put these away in a secure place, and then only extract them as needed, and rotating them on the endpoint is relatively trivial, and most importantly, safe in an automation sense. 
 
+I say that, but this code is lacking a ton of comments (on the basis that this post _constitutes_ the comments), but also it lacks a lot of **_error handling_**. 
+
+It won't shock you to learn that a lot of this was borne out of real work my team and I undertook recently, and most of that leverages our internal library of functions and tools, which abstract so very much of that away. 
+
+This code should get a ton more exceptions and try/except/finally loops before being used in the wild, as well as a bunch of mocks and tests. Time is not my friend and I figure the base knowledge is the meat of this sandwich. I will do my best to loop back and update the repo side with some _better quality_ code for long term use.
+
+--- 
+
 If you made it this far, thanks for sticking with me on this one. The easter egg you can see littered through this is the amount of time it took me to actually write this over the new year. There was a fair amount of trial and error involved. 
 
 If you have questions or feedback you can find me in the naf and packetpushers slack, or you can fire me an email.
