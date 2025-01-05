@@ -1165,6 +1165,43 @@ It won't shock you to learn that a lot of this was borne out of real work my tea
 
 This code should get a ton more exceptions and try/except/finally loops before being used in the wild, as well as a bunch of mocks and tests. Time is not my friend and I figure the base knowledge is the meat of this sandwich. I will do my best to loop back and update the repo side with some _better quality_ code for long term use.
 
+## Bonus content: TTLs
+
+I mentioned at the start in a note that here I used 1 day TTLs to keep my revocation list clean. In the real world, nobody wants 1 DAY certs, no matter how much the CA browser forum members keep suggesting it. 
+
+When you look back on my original Vault setup post, the `problemofnetwork-dot-com` role is configured to limit TTLs to 30 days and default to `86400` as well. This too was deliberate to force the copypastas to read up a little bit.
+
+I personally think that 30d certs are adequate, and ensure a good level of hygiene, but if you are a busy shop, I can see the tempation to stick to 365 days. 
+
+My only feedback is that anything longer than 90d means people will not track the expiry and will probably forget the process to rotate as well. Since the rotation part is simply the generate (seconds) and the deploy (seconds), you really should ask yourself why quarterly is a problem for you. If you can find your peace between 30d and 90d, your security team will thank you for it. 
+
+### Updating the pki_int terraform
+
+I would suggest increasing your max_ttl to 365d `31536000` and the default ttl to 90d `7776000`
+
+```toml
+resource "vault_pki_secret_backend_role" "pon_issuing_role" {
+  backend          = vault_mount.pki_int.path
+  issuer_ref       = vault_pki_secret_backend_issuer.pon_issuing_g1.issuer_ref
+  # this is the name we will use later to target this role
+  name             = "problemofnetwork-dot-com"
+  # valid for 90d default and up to 365d
+  ttl              = 7776000
+  max_ttl          = 31536000
+  # we let the user request IP SANs (important in networking certs)
+  allow_ip_sans    = true
+  # we hook ourselves to rsa4096
+  key_type         = "rsa"
+  key_bits         = 4096
+  # limited to certs in the problemofnetwork.com domain
+  allowed_domains  = ["problemofnetwork.com"]
+  # we say we are ok with requests for _something_.problemofnetwork.com
+  allow_subdomains = true
+}
+```
+
+You can then rerun the scripts with `TTL: int = 7776000` for a 90d period
+
 --- 
 
 If you made it this far, thanks for sticking with me on this one. The easter egg you can see littered through this is the amount of time it took me to actually write this over the new year. There was a fair amount of trial and error involved. 
