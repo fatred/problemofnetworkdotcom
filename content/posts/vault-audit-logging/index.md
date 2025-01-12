@@ -140,13 +140,13 @@ lets start with a few examples taken from the [hashicorp docs](https://developer
 > I exported the logfile location as per the note in the docs like so: `export AUDIT_LOG_FILE=logs/audit.log`
 
 ```shell
-jhow@discord:~/vault$ sudo jq -n '[inputs | {DisplayName: .auth.display_name | select(. != null)} ] | group_by(.DisplayName) | map({DisplayName: .[0].DisplayName, Count: length})  | .[]' $AUDIT_LOG_FILE 
+jhow@vault:~/vault$ sudo jq -n '[inputs | {DisplayName: .auth.display_name | select(. != null)} ] | group_by(.DisplayName) | map({DisplayName: .[0].DisplayName, Count: length})  | .[]' $AUDIT_LOG_FILE 
 {
   "DisplayName": "root",
   "Count": 9
 }
 
-jhow@discord:~/vault$ sudo jq -n '[inputs | {Operation: .request.operation} ] | group_by(.Operation) | map({Operation: .[0].Operation, Count: length}) | .[]' $AUDIT_LOG_FILE 
+jhow@vault:~/vault$ sudo jq -n '[inputs | {Operation: .request.operation} ] | group_by(.Operation) | map({Operation: .[0].Operation, Count: length}) | .[]' $AUDIT_LOG_FILE 
 {
   "Operation": "list",
   "Count": 2
@@ -164,7 +164,7 @@ jhow@discord:~/vault$ sudo jq -n '[inputs | {Operation: .request.operation} ] | 
 Now lets look at the examples for "badness". Here I will make am attempt to list a non-existant kv store called `secret` (ours is called `secrets`) 
 
 ```shell
-jhow@discord:~/vault$ vault kv list secrets
+jhow@vault:~/vault$ vault kv list secrets
 Error making API request.
 
 URL: GET http://localhost:8200/v1/sys/internal/ui/mounts/secrets
@@ -176,7 +176,7 @@ Code: 403. Errors:
 Now if we look for the errors:
 
 ```shell
-jhow@discord:~/vault$ sudo jq -n '[inputs | {Errors: .error} ] | group_by(.Errors) | map({Errors: .[0].Errors, Count: length}) | sort_by(-.Count) | .[]' $AUDIT_LOG_FILE
+jhow@vault:~/vault$ sudo jq -n '[inputs | {Errors: .error} ] | group_by(.Errors) | map({Errors: .[0].Errors, Count: length}) | sort_by(-.Count) | .[]' $AUDIT_LOG_FILE
 {
   "Errors": null,
   "Count": 15
