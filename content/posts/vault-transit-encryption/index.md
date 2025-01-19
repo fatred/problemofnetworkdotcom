@@ -3,7 +3,7 @@ title: "Vault Transit Encryption"
 date: 2025-01-18T15:57:32+01:00
 ---
 
-This post has a weird genesis. If I think back to the first time I heard of Transit Encryption I first thought it was something else, and when I finally understood what [the docs were telling me](https://developer.hashicorp.com/vault/tutorials/encryption-as-a-service/eaas-transit), I thought it was the dumbest idea ever. 
+This post has a weird genesis. If I think back to the first time I heard of Transit Encryption I originally thought it was something else, and when I finally understood what [the docs were telling me](https://developer.hashicorp.com/vault/tutorials/encryption-as-a-service/eaas-transit), I thought it was the dumbest idea ever. 
 
 Turns out I was way wrong. Over the next half an hour I hope to explain why.
 
@@ -288,7 +288,7 @@ Received parroted message on 'transit-demo-recieve': i saw this is an emitted me
 
 So you can see that the Responder loads up and "hangs" at `Subscribing to transit-demo-transmit`, until it gets a message as the initiator sends it. When the initiator sends his message, the responder repeats the inbound message, then when it parrots it back the initiator can see the amended message.
 
-### Visualising the problem
+## Visualising the problem
 
 Now we have the ability to send a message either way, lets look at why we are doing this in the first place.
 
@@ -353,7 +353,7 @@ So if we run all three of these, the observer can see all the messages that the 
 
 So, now we have to do something to ensure that the initiator and the responder can communicate privately without the observer knowing what is being discussed.
 
-### Intro to transit crypto
+## Intro to transit crypto
 
 Before we try to setup anything on the client side, we need to setup Vault to offer the transit encryption feature, and then create two "users" and a policy to allow them to use the transit role we setup for this.
 
@@ -361,7 +361,7 @@ Before we try to setup anything on the client side, we need to setup Vault to of
 
 I assume that you are still using my docker-compose from earlier in the series, and have the terraform to hand.
 
-#### Enabling the role in vault
+### Enabling the role in vault
 
 Lets start with a change in terraform. 
 
@@ -653,7 +653,7 @@ Encrypted string: vault:v1:+zf0fsJxYWVZ31IY1GqVqSz/+1J2Fqr7gTJTaSfngJS2pxDq8s1Y3
 Decrypted string: this is private
 ```
 
-#### The encrypted data and key management
+### The encrypted data and key management
 
 Quick pause to look at the encrypted string data. 
 
@@ -669,7 +669,7 @@ If for some reason, the token (the userpass in this situation) is exposed, then 
 
 It is _possible_ to [export](https://hvac.readthedocs.io/en/stable/usage/secrets_engines/transit.html#export-key) the key with python (seemingly not in the UI?). This is a risk to avoid by ensuring your policies don't permit this to a "human", since there is no forward secrecy in this approach. If the key is exposed, you have to then consider all that data plaintext whereever it lies, and either re-wrap it, or delete it.
 
-### Encrypting our demo messages
+## Encrypting our demo messages
 
 So lets take what we learned over to our demo in a forked copy of the script.
 
@@ -729,11 +729,11 @@ Great success!
 
 We can now have encryption in transit, protecting the message content even from people with authorised access to the logs or the environment.
 
-### Refining the security posture
+## Refining the security posture
 
 This demo is pretty contrived, but hopefully you can see the value of encryption outside of the code. There are a few things we cna do to increase the security level here so lets dig in a little bit further before we call it a day.
 
-#### Per worker accounts
+### Per worker accounts
 
 You will recall we created two worker userpass accounts. This is a little pointless in our demo here, but assume for a moment that you have a production web server with a high risk profile sending messages to an API server that has a lower risk profile. The web server is more likely to have an external facing attack surface, than an application server that doesnt recieve client traffic directly for example. 
 
