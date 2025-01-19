@@ -32,7 +32,7 @@ The `simple-test.py` is adapted from the nats-py README.md, and it shows how you
 
 > Note: this is a really simple, and clean example of async python. It's worth spending a little time dissecting it as a separate challenge imho.
 
-Execute the script and yo ushould get some messages back.
+Execute the script and you should get some messages back.
 
 ```shell
 (venv) ➜  transit-demo git:(main) $ ./simple-test.py             
@@ -247,17 +247,17 @@ if __name__ == "__main__":
 
 ```
 
-First, lets look at the functions. I could have made this a lot simpler with a dictionary and a dict comprehention, but this seemed a little complex. 
+First, lets look at the functions. I could have made this a lot more compact with a dictionary and a dict comprehention, but this seemed a little complex to read. 
 
 The point of these functions is to reply back the correct queue names based on the role we are in. Hopefully the one-liner return makes it clear.
 
-The argparse is offering up the option of being an initiator or a responder. I did this because i didnt want two scripts that were very duplicative.
+The argparse is offering up the option of being an initiator or a responder. I did this because I didnt want two scripts that were very duplicative.
 
 Inside main we first connect to the NATS server. When we are connected, we use the `pick_subscription_queue` function to subscribe to the correct queue for our position.
 
 If we are an initator, we just go straight into publishing the message on the `pick_transmit_queue`. 
 
-Inside the try loop, we will use `async for msg in sub.messages` to read messages off the queue as they appear. If we didnt put the `await sub.unsubscribe()` at the end of our loop iteration, it would sit there running this loop every time a message appears.
+Inside the try loop, we will use `async for msg in sub.messages` to read messages off the queue as they appear. If we didnt put the `await sub.unsubscribe()` at the end of our loop iteration, it would sit there running this loop every time a message appears. We only want to process one message and quit tho, so thats why we do this like that.
 
 Since we want the content in both sides of the loop, we extract the message data to fields we can reuse. Not sure if this is an optimisation or not, but its a habit of mine.
 
@@ -355,17 +355,17 @@ So, now we have to do something to ensure that the initiator and the responder c
 
 ## Intro to transit crypto
 
-Before we try to setup anything on the client side, we need to setup Vault to offer the transit encryption feature, and then create two "users" and a policy to allow them to use the transit role we setup for this.
+Before we try to setup anything on the client side, we need to setup Vault to offer the transit encryption feature, and then create two "users" with a policy to allow them to use the transit role we setup for this.
 
 > Reminder: you can have as many transit encryption roles as you want, and tokens/users can be allowed to use them in their policies alongside one, many or no other vault features. Yay RBAC!
 
-I assume that you are still using my docker-compose from earlier in the series, and have the terraform to hand.
+I assume that you are still using [my docker-compose](https://www.problemofnetwork.com/posts/bootstrapping-hashi-vault/) from earlier in the series, and have the terraform to hand.
 
 ### Enabling the role in vault
 
 Lets start with a change in terraform. 
 
-Add the new file `transit-crypto.tf` in the `exploring-vault/terraform` folder. Add the following content:
+Create the new file `transit-crypto.tf` in the `exploring-vault/terraform` folder. Add the following content:
 
 ```toml
 # transit-crypto-nats.tf
@@ -420,7 +420,7 @@ resource "vault_generic_endpoint" "nats-worker1" {
   data_json = <<EOT
 {
   "token_policies": ["transit-nats-client-policy"],
-  "password": "Less-Secure-Cred1!"
+  "password": "Less-Secure-Cred!"
 }
 EOT
 }
@@ -432,7 +432,7 @@ resource "vault_generic_endpoint" "nats-worker2" {
   data_json = <<EOT
 {
   "token_policies": ["transit-nats-client-policy"],
-  "password": "Less-Secure-Cred2!"
+  "password": "Less-Secure-Cred!"
 }
 EOT
 }
@@ -626,7 +626,7 @@ if __name__ == "__main__":
 
 ```
 
-I am going to be honest now and say this took me a little bit of dancing around. All the work was in the two functions. So lets start with the signatures.
+I am going to be honest now and say this took me a little bit of dancing around. All the work was in the two functions. So lets start with main.
 
 We added a bit in main to stand up a vault client. Once this is authenticated, we will need to pass that client object around the functions, so we add that to the args. 
 
@@ -638,11 +638,11 @@ In the docs it says `plaintext=base64ify('hi its me hvac'.encode())`, but base64
 
 At first I tried to just use `base64.b64encode(input)` but it wanted a bytes object. 
 
-Then I tried `base64.b64encode(bytes(input, 'utf-8')), which works, but the vault call fails because it canst serialses bytes into JSON for the post. 
+Then I tried `base64.b64encode(bytes(input, 'utf-8')), which works, but the vault call fails because it can't serialise bytes into JSON for the post to vault.
 
-Eventually [StackOverflow](https://stackoverflow.com/questions/23164058/how-to-encode-text-to-base64-in-python) gives me enough of a shove to figure out the plaintext needs to look like this: `plaintext = base64.b64encode(input.encode()).decode()`. In otherwords, we encode the input to bytes, hand it to the base64 library to encode that, and then we convert it from bytes back to string before sending it to vault. 
+Eventually [StackOverflow](https://stackoverflow.com/questions/23164058/how-to-encode-text-to-base64-in-python) gives me enough of a shove to figure out the plaintext needs to look like this: `plaintext = base64.b64encode(input.encode()).decode()`. In otherwords, we encode the input string to bytes, hand it to the base64 library to encode that int b64 (which is bytes formatted), and then we convert it from bytes back to string so the module can serialise it to JSON and hand it to vault. 
 
-On the decryption side, we have to remember to decode the base64 back to a string too, but this is less complex. To get the plaintext back we say: `plaintext = base64.b64decode(decrypt_data_response['data']['plaintext']).decode()`, which is to say, get the "plaintext" back from vault after decryption, then base64 decode this, and strip off the bytes before printing it out.
+On the decryption side, vault will give us back the base64 bytes, and we have to remember to decode this back to a string too, but this is less complex. To get the plaintext back we say: `plaintext = base64.b64decode(decrypt_data_response['data']['plaintext']).decode()`, which is to say, get the "plaintext" (base64) back from vault after decryption, then base64 decode this, and decode the bytes to a plain string before printing it out.
 
 When we run it, we get the below output:
 
@@ -663,11 +663,15 @@ Second we have `v1`. This is the index number of the private key used to encrypt
 
 Finally we have the ciphertext, which can only be decrypted by vault using the key in the index position noted.
 
-As I said at the start, the transit encryption engine doesnt actually store any of the message content. If you dont capture and store the response to an encryption request, or the original plaintext send to obtain that ciphertext, then it will be lost forever. This is Encryption-as-a-Service, and the only promise it makes is to remember the private key. You can use the [rotate_key](https://hvac.readthedocs.io/en/stable/usage/secrets_engines/transit.html#rotate-key) function to produce a new key if the desire is such. By default, unless you provide a `key_version` in your encryption request, vault will always use the most recent key number for encryption requests.
+As I said at the start, the transit encryption engine doesnt actually store any of the message content. If you don't capture and store the response to an encryption request, or the original plaintext sent to obtain that ciphertext, then it will be lost forever. This is Encryption-as-a-Service, and the only promise it makes is to remember the private key. 
 
-If for some reason, the token (the userpass in this situation) is exposed, then its plausible someone with this identity can request decryption of ciphertexts. Under that scenario, you dont _have_ to rotate the key, you simply expire/replace/change the credential that was exposed to make it impossible for the attacker to use that exposed credential to get a token and thus access to the decryption service.
+You can use the [rotate_key](https://hvac.readthedocs.io/en/stable/usage/secrets_engines/transit.html#rotate-key) function to produce a new key if the desire is such. 
 
-It is _possible_ to [export](https://hvac.readthedocs.io/en/stable/usage/secrets_engines/transit.html#export-key) the key with python (seemingly not in the UI?). This is a risk to avoid by ensuring your policies don't permit this to a "human", since there is no forward secrecy in this approach. If the key is exposed, you have to then consider all that data plaintext whereever it lies, and either re-wrap it, or delete it.
+By default, unless you provide a `key_version` in your encryption request, vault will always use the most recent key number for encryption requests.
+
+If for some reason, the token (the userpass in this situation) is exposed, then its plausible someone with this identity can request decryption of ciphertexts. Under that scenario, you dont _have_ to rotate the key, you simply expire/replace/change the credential that was exposed to make it impossible for the attacker to use that exposed credential to get a token and thus access to the decryption service. Rotating the keys is always wise in this situation however.
+
+That is because it is _possible_ to [export](https://hvac.readthedocs.io/en/stable/usage/secrets_engines/transit.html#export-key) the key with python (seemingly not in the UI?). This is a risk to avoid by ensuring your policies don't permit this to an access key, and ideally, not to a common-or-garden sysadmin role either, since there is no forward secrecy in this transit encryption approach. If the key is exposed, you have to then consider all that data is now plaintext whereever it lies, and either re-wrap it in a new key, or delete it.
 
 ## Encrypting our demo messages
 
@@ -711,9 +715,10 @@ asyncio.run(main(role = role, message=args.message))
 
 So if we ensure we have our VAULT_ADDR env var correctly set, we should now be able to stand up the 4 panes in order:
 
-1. start the observer: `./private-worker.py --observer`
-2. start the responder: `./private-worker.py --responder`
-3. run the initiator: `./private-worker.py --initiator --message "test message"`
+1. your docker compose tracing the NATS Server logs
+2. start the observer: `./private-worker.py --observer`
+3. start the responder: `./private-worker.py --responder`
+4. run the initiator: `./private-worker.py --initiator --message "test message"`
 
 We should then see the output as per the below screenshot:
 
@@ -731,15 +736,15 @@ We can now have encryption in transit, protecting the message content even from 
 
 ## Refining the security posture
 
-This demo is pretty contrived, but hopefully you can see the value of encryption outside of the code. There are a few things we cna do to increase the security level here so lets dig in a little bit further before we call it a day.
+This demo is pretty contrived, but hopefully you can see the value of encryption outside of the code. There are a few things we can do to increase the security level here so lets dig in a little bit further before we call it a day.
 
 ### Per worker accounts
 
 You will recall we created two worker userpass accounts. This is a little pointless in our demo here, but assume for a moment that you have a production web server with a high risk profile sending messages to an API server that has a lower risk profile. The web server is more likely to have an external facing attack surface, than an application server that doesnt recieve client traffic directly for example. 
 
-If all applications use the same credential, then if one webserver is compromised, then all instances of that credential now need to be rolled over. If you have different credentials per host or at least per service class, you reduce the impact of rolling these credentials. Lets implement that here.
+If all applications use the same credential, then if one webserver is compromised, then all instances of that credential now need to be rolled over. If you have different credentials per host or at least per service class, you reduce the scope of rolling these credentials. Lets implement that here.
 
-> Note: this is super janky. Don't do this in prod! Once you understand the primitives, you can decide on the best approach for you.
+> Note: this demo is super janky. Don't do this in prod! Once you understand the primitives, you can decide on the best approach for you.
 
 1. add the new username and differentiate them in the constants; remember the password was the same. _yes. thats dumb._ 
 ```python
@@ -798,8 +803,8 @@ Works tho.
 
 ## Wrapping up
 
-So here we showed how the transit encryption feature can prevent snooping on data in flight, regardless of TLS on the wire. This is especially important when we have numerous admins who can access our tools, and service internal logs are not necsarily private or respecting of secrets.
+So here we showed how the transit encryption feature can prevent snooping on data in flight, regardless of TLS on the wire. This is especially important when we have numerous admins who can access our tools, and service internal logs are not necessarily private or respecting of secrets.
 
-I hope that now you had a chance to see it in "the wild" you might start to observe more opportunities to secure your automation tooling. 
+I hope that now you had a chance to see it in "the wild" you might start to find more opportunities to secure your automation tooling. 
 
 Until next time, toodleoo :D
