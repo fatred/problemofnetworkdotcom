@@ -70,7 +70,7 @@ Roughly in the order I hit them:
 You can read these in any order; they cross-reference but don't depend on each other.
 
 - [Part 1 — Platform.json and hwsku.json: the contract docker-sonic-vs forgot to mention](/posts/srl-sonic-fabric-poc-platform-json-contract/)
-- [Part 2 — Why every sonic-vs port has the same MAC, and what that means for BGP unnumbered](/srl-sonic-fabric-poc-platform-json-contract)
+- [Part 2 — Why every sonic-vs port has the same MAC, and what that means for BGP unnumbered](/posts/srl-sonic-fabric-poc-mac-collision-unnumbered)
 - [Part 3 — Pushing config into SR Linux with gnmic from a YAML inventory](/posts/srl-sonic-fabric-poc-srl-gnmic-config/)
 - [Part 4 — Verify is not apply: structuring fabric automation to avoid lying to yourself](/posts/srl-sonic-fabric-poc-verify-not-apply/)
 
