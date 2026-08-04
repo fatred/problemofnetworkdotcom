@@ -12,4 +12,4 @@
 
 💞️ I am looking to collaborate on anything that supports the Network Engineer in their daily tasks and the business achieving their aims with clean, repeatable automation.
 
-📫 You can reach me at fatred@gmail.com or find me on bluesky @fatred.bgp4.life (ex @fatred on twatter)
+📫 You can reach me at fatred@gmail.com or find me on bluesky @fatred.bgp4.life (ex @fatred on twatter), or on ThinkedIn here https://www.linkedin.com/in/jonnyhoward/
