@@ -6,6 +6,8 @@ tags: ["vault", "netdevops", "ansible", "python"]
 showFullContent: false
 ---
 
+> _note:_ this was updated in Sept-2026 with docker compose file changes for Vault 2.1. I considered re-writing to OpenBao, but i didnt fancy all the dangling references being weird. 
+
 Recently I have spent a reasonable amount of time in Hashicorp vault. As part of a mini series on how to make better use of it in Network Automation, I started writing this as a "intro" to a post on the subject.
 
 As per usual with me, it ended up being so long that it had to be its own post. So. Here you are.
@@ -64,16 +66,19 @@ My goto here is the official docker image and a couple of docker volumes. Here i
 
 First, make a home for all this, e.g. `mkdir ~/vault`
 
-Second, make the folder structure the compose needs to work: `mkdir -p ~/vault/{config,file,logs}`
+Second, make the folder structure the compose needs to work:
+```
+mkdir -p ~/vault/{config,file,logs}
+sudo chown -R 100:1000 ~/vault/file ~/vault/logs   # 100:1000 = vault:vault inside the image
+```
 
 Now, make yourself a docker compose file
 ```bash
 cd ~/vault
-cat << EOF > docker-compose.yaml
-version: '3.3'
+cat << EOF > compose.yaml
 services:
   vault:
-    image: hashicorp/vault
+    image: hashicorp/vault:2.1.0
     container_name: vault
     environment:
       VAULT_ADDR: http://localhost:8200
@@ -81,12 +86,10 @@ services:
       - "8200:8200"
     restart: always
     volumes:
-      - ./logs:/vault/logs/:rw
-      - ./config:/vault/config/:rw
-      - ./file:/vault/file/:rw
-    cap_add:
-      - IPC_LOCK
-    entrypoint: vault server -config /vault/config/config.hcl
+      - ./config:/vault/config:ro
+      - ./file:/vault/file
+      - ./logs:/vault/logs
+    command: server
 EOF
 ```
 
