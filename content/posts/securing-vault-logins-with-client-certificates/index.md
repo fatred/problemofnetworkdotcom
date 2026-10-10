@@ -1,6 +1,6 @@
 ---
 title: "Securing Vault logins with client certificates"
-date: 2026-10-11T22:30:00+02:00
+date: 2026-10-10T23:30:00+02:00
 author: John Howard
 tags: ["vault", "pki", "certstrap", "yubikey"]
 showFullContent: false
